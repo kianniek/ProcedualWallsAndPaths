@@ -1,0 +1,226 @@
+.3dm[attr]uselfs filter=lfs diff=lfs merge=lfs
+
+## Unity ##
+*.cs text eol=lf diff=csharp
+*.cginc text eol=lf
+*.shader text eol=lf
+
+##	Common Files
+*.unity text eol=lf -merge
+*.prefab text eol=lf -merge
+*.asset text eol=lf -merge
+*.mat text eol=lf -merge
+*.anim text eol=lf -merge
+*.playable text eol=lf -merge
+*.meta text eol=lf -merge
+*.controller text eol=lf -merge
+*.spriteatlas text eol=lf -merge
+
+## "physic" for 3D but "physics" for 2D
+*.physicMaterial2D text eol=lf -merge
+*.physicMaterial text eol=lf -merge
+*.physicsMaterial2D text eol=lf -merge
+*.physicsMaterial text eol=lf -merge
+
+## Specific assets exceptions (should come after generic definitions)
+## Generated NavMeshes, Terrains, and UMA slots are always binary,
+## even if unity serialization is set to "force text"
+NavMesh.asset uselfs -text
+**/Terrain*/*.asset uselfs -text
+*_Slot.asset uselfs -text
+LightingData.asset uselfs -text
+*.cubemap uselfs -text
+*.unitypackage uselfs -text
+
+## Collapse Unity-generated files on GitHub
+*.asset linguist-generated
+*.mat linguist-generated
+*.meta linguist-generated
+*.prefab linguist-generated
+*.unity linguist-generated
+
+## git-lfs ##
+# 3D models
+*.3dm uselfs -text
+*.3ds uselfs -text
+*.3DS uselfs -text
+*.blend uselfs -text
+*.c4d uselfs -text
+*.collada uselfs -text
+*.dae uselfs -text
+*.ddf uselfs -text
+*.dem uselfs -text
+*.dwg uselfs -text
+*.dxf uselfs -text
+*.epx uselfs -text
+*.fbx uselfs -text
+*.FBX uselfs -text
+*.gltf uselfs -text
+*.glTF uselfs -text
+*.gLFT uselfs -text
+*.GLTF uselfs -text
+*.ifc uselfs -text
+*.jas uselfs -text
+*.kmz uselfs -text
+*.lws uselfs -text
+*.lwo uselfs -text
+*.lxo uselfs -text
+*.ma uselfs -text
+*.MA uselfs -text
+*.max uselfs -text
+*.Max uselfs -text
+*.MAX uselfs -text
+*.mb uselfs -text
+*.MB uselfs -text
+*.obj uselfs -text
+*.off uselfs -text
+*.ply uselfs -text
+*.sc1 uselfs -text
+*.skb uselfs -text
+*.skp uselfs -text
+*.stl uselfs -text
+*.wlr uselfs -text
+*.xsi uselfs -text
+*.ztl uselfs -text
+
+# Audio
+*.aac uselfs -text
+*.aif uselfs -text
+*.aiff uselfs -text
+*.flac uselfs -text
+*.imp uselfs -text
+*.it uselfs -text
+*.mid uselfs -text
+*.midi uselfs -text
+*.mod uselfs -text
+*.mp3 uselfs -text
+*.ogg uselfs -text
+*.opus uselfs -text
+*.s3m uselfs -text
+*.wav uselfs -text
+*.xm uselfs -text
+
+# Video
+*.264 uselfs -text
+*.3gp uselfs -text
+*.3GP uselfs -text
+*.asf uselfs -text
+*.avi uselfs -text
+*.dv uselfs -text
+*.dvx uselfs -text
+*.DVX uselfs -text
+*.flv uselfs -text
+*.h264 uselfs -text
+*.hvec uselfs -text
+*.m3u8 uselfs -text
+*.m4a uselfs -text
+*.m4v uselfs -text
+*.mjpeg uselfs -text
+*.mjpg uselfs -text
+*.mkv uselfs -text
+*.mov uselfs -text
+*.mp4 uselfs -text
+*.mpd uselfs -text
+*.mpeg uselfs -text
+*.mpeg1 uselfs -text
+*.mpeg2 uselfs -text
+*.mpeg4 uselfs -text
+*.mpg uselfs -text
+*.ogv uselfs -text
+*.vp8 uselfs -text
+*.webm uselfs -text
+*.wmv uselfs -text
+*.xvid uselfs -text
+
+# Fonts
+*.otf uselfs -text
+*.ttc uselfs -text
+*.ttf uselfs -text
+*.fnt uselfs -text
+*.fon uselfs -text
+*.fot uselfs -text
+*.ufo uselfs -text
+*.woff uselfs -text
+*.woff2 uselfs -text
+
+# Images
+*.ai uselfs -text
+*.bmp uselfs -text
+*.eps uselfs -text
+*.exr uselfs -text
+*.gif uselfs -text
+*.hdr uselfs -text
+*.iff uselfs -text
+*.indd uselfs -text
+*.jpeg uselfs -text
+*.jpg uselfs -text
+*.pict uselfs -text
+*.png uselfs -text
+*.psd uselfs -text
+*.tga uselfs -text
+*.tif uselfs -text
+*.tiff uselfs -text
+
+# Substance
+*.sbs uselfs -text
+*.sbsar uselfs -text
+*.sbsprs uselfs -text
+*.SBS uselfs -text
+*.SBSAR uselfs -text
+*.SBSPRS uselfs -text
+
+# Documents
+*.dbgdt uselfs binary
+*.dni uselfs binary
+*.doc uselfs binary
+*.ewd uselfs binary
+*.eww uselfs binary
+*.mac uselfs binary
+*.odt uselfs binary
+*.pdf uselfs binary
+*.wsdt uselfs binary
+
+# Library
+*.a uselfs -text
+*.aar uselfs -text
+*.lib uselfs -text
+
+# Compiled Dynamic Library
+*.dll uselfs -text
+*.pdb uselfs -text
+*.so uselfs -text
+
+# Executable/Installer
+*.apk uselfs -text
+*.app uselfs -text
+*.dmg uselfs -text
+*.exe uselfs -text
+*.ipa uselfs -text
+
+# Compressed Archive
+*.7z uselfs -text
+*.ace uselfs -text
+*.ar uselfs -text
+*.bz2 uselfs -text
+*.cab uselfs -text
+*.gz uselfs -text
+*.iso uselfs -text
+*.jar uselfs -text
+*.lz uselfs -text
+*.lzh uselfs -text
+*.lzma uselfs -text
+*.rar uselfs -text
+*.s7z uselfs -text
+*.sitx uselfs -text
+*.tar uselfs -text
+*.tar.bz2 uselfs -text
+*.tar.gz uselfs -text
+*.tar.lzma uselfs -text
+*.tar.xz uselfs -text
+*.tar.Z uselfs -text
+*.tgz uselfs -text
+*.tlz uselfs -text
+*.txz uselfs -text
+*.zip uselfs -text
+*.zipx uselfs -text
+*.zz uselfs -text
