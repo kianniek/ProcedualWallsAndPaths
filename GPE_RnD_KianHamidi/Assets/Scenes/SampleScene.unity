@@ -558,7 +558,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   combineMeshes: 0
   wallLeft: {x: -2, y: 0, z: 0}
-  wallRight: {x: 2, y: 3.75, z: 0}
+  wallRight: {x: 2, y: 0, z: -4}
   wallHeight: 2
   wallDepth: 0.1
   brickDepthDiviation: 0.1
@@ -566,7 +566,7 @@ MonoBehaviour:
   maxBrickSize: {x: 2, y: 2}
   brickPrefab: {fileID: 7057152729200783137, guid: 5c1737f4ce7a6cd4298da9560f3ba995,
     type: 3}
-  resolution: 8
+  resolution: 1
   rotationDiviation: {x: 1, y: 1}
 --- !u!114 &1305805502
 MonoBehaviour:

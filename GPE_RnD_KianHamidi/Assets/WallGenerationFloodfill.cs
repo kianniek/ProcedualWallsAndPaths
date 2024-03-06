@@ -34,7 +34,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         //when enter is pressed, generate a new wall and destroy the old one
         if (Input.GetKey(KeyCode.Return))
         {
-            GenerateWall(wallLeft, wallRight, wallHeight, minBrickSize, maxBrickSize);
+            ReGenerate();
         }
     }
 
@@ -56,6 +56,10 @@ public class WallGenerationFloodfill : MonoBehaviour
                 }
             }
         }
+        else
+        {
+            GenerateWall(wallLeft, wallRight, wallHeight, minBrickSize, maxBrickSize);
+        }
     }
 
     public void GenerateWall(Vector3 bottomLeft, Vector3 bottomRight, float wallHeight, Vector2 minBrickSize, Vector2 maxBrickSize)
@@ -65,6 +69,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         Vector3 wallUp = Vector3.up * wallHeight;
         Vector3 wallRight = (bottomRight - bottomLeft).normalized * wallWidth;
         Vector3 wallForward = Vector3.Cross(wallUp, wallRight).normalized * wallDepth;
+
         //draw the wall vectors in the scene view
         Debug.DrawLine(bottomLeft, bottomLeft + wallRight, Color.red, 10);
         Debug.DrawLine(bottomLeft, bottomLeft + wallUp, Color.green, 10);
@@ -74,13 +79,13 @@ public class WallGenerationFloodfill : MonoBehaviour
         int numberOfBricksHigh = Mathf.FloorToInt(wallHeight / minBrickSize.y * resolution);
         isPositionOccupied = new bool[numberOfBricksAcross, numberOfBricksHigh];
 
-        FillWallArea(bottomLeft, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
+        FillWallArea(bottomLeft, wallUp,wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
 
         if (!combineMeshes) { return; }
         meshCombinerRuntime.CombineMeshes();
     }
 
-    private void FillWallArea(Vector2 bottomLeft, int numberOfBricksAcross, int numberOfBricksHigh, Vector2 minBrickSize, Vector2 maxBrickSize, ref bool[,] isPositionOccupied)
+    private void FillWallArea(Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, Vector2 minBrickSize, Vector2 maxBrickSize, ref bool[,] isPositionOccupied)
     {
         for (int y = 0; y < numberOfBricksHigh; y++)
         {
@@ -89,8 +94,8 @@ public class WallGenerationFloodfill : MonoBehaviour
                 if (!isPositionOccupied[x, y]) // Check if the current position is not occupied
                 {
                     Vector2 currentBrickSize = ChooseBrickSize(minBrickSize, maxBrickSize);
-                    float brickWidth = currentBrickSize.x * resolution;
-                    float brickHeight = currentBrickSize.y * resolution;
+                    int brickWidth = Mathf.FloorToInt(currentBrickSize.x * resolution);
+                    int brickHeight = Mathf.FloorToInt(currentBrickSize.y * resolution);
 
                     // Check if the brick fits in the remaining space
                     if (x + brickWidth <= numberOfBricksAcross && y + brickHeight <= numberOfBricksHigh)
@@ -116,16 +121,12 @@ public class WallGenerationFloodfill : MonoBehaviour
                                     isPositionOccupied[x + i, y + j] = true;
                                 }
                             }
-                            Vector3 position = new
-                                (
-                                bottomLeft.x + (x * (minBrickSize.x / resolution)) + (currentBrickSize.x / 2),
-                                bottomLeft.y + (y * (minBrickSize.y / resolution)) + (currentBrickSize.y / 2),
-                                Mathf.Lerp(x / numberOfBricksAcross, wallLeft.z, wallRight.z) + (wallDepth / 2)
-                                );
+                            // Calculate the position more accurately
+                            Vector3 position = bottomLeft +
+                                wallRight.normalized * ((x + brickWidth / 2f) / resolution) +
+                                wallUp.normalized * ((y + brickHeight / 2f) / resolution);
 
-
-
-                            InstantiateBrickAt(position, currentBrickSize);
+                            InstantiateBrickAt(position, currentBrickSize, wallRight, wallUp, wallForward);
                         }
                     }
                 }
@@ -147,10 +148,9 @@ public class WallGenerationFloodfill : MonoBehaviour
         //if not all positions are occupied, call the function again
         if (!allPositionsOccupied)
         {
-            FillWallArea(bottomLeft, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
+            FillWallArea(bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
         }
     }
-
     private Vector2 ChooseBrickSize(Vector2 minBrickSize, Vector2 maxBrickSize)
     {
         float width = Random.Range((int)minBrickSize.x, (int)maxBrickSize.x + 1) / resolution;
@@ -158,10 +158,15 @@ public class WallGenerationFloodfill : MonoBehaviour
         return new Vector2(width, height);
     }
 
-    private void InstantiateBrickAt(Vector3 position, Vector2 size)
+    private void InstantiateBrickAt(Vector3 position, Vector2 size, Vector3 wallRight, Vector3 wallUp, Vector3 wallForward)
     {
         GameObject brick = Instantiate(brickPrefab, position, Quaternion.identity, transform);
         brick.transform.localScale = new Vector3(size.x, size.y, wallDepth);
+        brick.transform.Rotate(Vector3.up, Random.Range(-rotationDiviation.x, rotationDiviation.x));
+        //oriant the brick to the wall by using the wall vectors
+        brick.transform.right = wallRight;
+        brick.transform.up = wallUp;
+        brick.transform.forward = wallForward;
         //randlomize rotation of the brick on the y axis by rotationDiviation degrees
         if (rotationDiviation != Vector2.zero)
         {
