@@ -1,0 +1,7 @@
+ABC testen
++ Wall
+- Floodfill
+- Random placement
+- Shader
+
+-- Werk nu met een segment en en niet met de hele muur.

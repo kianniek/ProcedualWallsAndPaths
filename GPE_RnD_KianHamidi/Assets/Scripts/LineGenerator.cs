@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UIElements;
 [Serializable]
 public struct Line
@@ -20,7 +21,8 @@ public class LineGenerator : MonoBehaviour
     // Changed to a list of a list of Vector3 to support multiple disconnected lines.
     [SerializeField] private List<Line> lines;
 
-    WallGeneration wallGeneration;
+    //event to invoke when a line segment is finished
+    public UnityEvent<string, GameObject> OnLineSegmentFinished;
     public List<Line> Lines
     {
         get { return lines; }
@@ -40,9 +42,6 @@ public class LineGenerator : MonoBehaviour
     void Start()
     {
         lines = new();
-        // Initialize the value to avoid an anomalous first-frame value
-
-        wallGeneration = GetComponent<WallGeneration>();
     }
 
     void FixedUpdate()
@@ -81,7 +80,7 @@ public class LineGenerator : MonoBehaviour
                 {
                     currentLine.LinePoints.Add(smoothedPosition);
                     currentLine.LineDirection.Add(WorldMouseDelta.normalized);
-                    wallGeneration.GenerateWall();
+                    OnLineSegmentFinished.Invoke("LineSegmentFinished", gameObject);
                 }
             }
             lastMousePos = GetMouseWorldPosition();
@@ -91,7 +90,6 @@ public class LineGenerator : MonoBehaviour
             // Mouse button released, end current line drawing
             isDrawingLine = false;
             ClearMousePositionQueue();
-
         }
     }
     Vector3 GetMouseWorldPosition()

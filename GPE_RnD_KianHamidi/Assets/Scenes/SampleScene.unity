@@ -437,9 +437,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1305805497}
   - component: {fileID: 1305805496}
-  - component: {fileID: 1305805498}
+  - component: {fileID: 1305805501}
   - component: {fileID: 1305805500}
   - component: {fileID: 1305805499}
+  - component: {fileID: 1305805502}
   m_Layer: 0
   m_Name: PCG_Handler
   m_TagString: Untagged
@@ -463,6 +464,21 @@ MonoBehaviour:
   smoothingLevel: 100
   lineResolution: 1
   lines: []
+  OnLineSegmentFinished:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1305805501}
+        m_TargetAssemblyTypeName: WallGenerationFloodfill, Assembly-CSharp
+        m_MethodName: ReGenerate
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &1305805497
 Transform:
   m_ObjectHideFlags: 0
@@ -474,30 +490,10 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1305805498
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1305805495}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 114baa0226cd8b649b3ae0bf31c894c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  wallHeight: 2
-  wallDepth: 5
-  minBrickSize: {x: 0, y: 0}
-  maxBrickSize: {x: 0, y: 0}
-  wallPartitionResulution: 3
-  partitions: []
-  cubePrefab: {fileID: 2949532241445911438, guid: 3227ffd39e98e7045b0bc1420ec2e30e,
-    type: 3}
 --- !u!33 &1305805499
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -548,6 +544,42 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1305805501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1305805495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef274f3984078a646808de0b10060c16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  combineMeshes: 0
+  wallLeft: {x: -2, y: 0, z: 0}
+  wallRight: {x: 2, y: 3.75, z: 0}
+  wallHeight: 2
+  wallDepth: 0.1
+  brickDepthDiviation: 0.1
+  minBrickSize: {x: 1, y: 1}
+  maxBrickSize: {x: 2, y: 2}
+  brickPrefab: {fileID: 7057152729200783137, guid: 5c1737f4ce7a6cd4298da9560f3ba995,
+    type: 3}
+  resolution: 8
+  rotationDiviation: {x: 1, y: 1}
+--- !u!114 &1305805502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1305805495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c83cf27882e3c2b45acdd5cd9de8825a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1566202447
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,7 +42,9 @@ public class WallGeneration : MonoBehaviour
 
     [SerializeField]
     List<Partition> partitions = new List<Partition>();
-    List<Vector3> partitionCenter = new List<Vector3>();
+    //List of the center points of the partitions
+    List<List<Vector3>> partitionCenters = new();
+
 
     public GameObject cubePrefab;
 
@@ -83,6 +85,7 @@ public class WallGeneration : MonoBehaviour
         }
 
         GenerateMesh();
+        DrawPartitionCenters();
     }
 
     void GenerateMesh()
@@ -100,7 +103,7 @@ public class WallGeneration : MonoBehaviour
         float wallLength = baseVector.magnitude;
         Vector3 wallDirection = baseVector.normalized;
         Vector3 wallUp = Vector3.up * wallHeight;
-
+        List<Vector3> centerPoints = new List<Vector3>();
         int divisions_x = Mathf.FloorToInt(wallLength * resolution);
         int divisions_y = Mathf.FloorToInt(wallHeight * resolution);
         for (int y = 0; y < divisions_y; y++)
@@ -117,11 +120,32 @@ public class WallGeneration : MonoBehaviour
                 Vector3 tl = Vector3.Lerp(p0, p1, factor_x1) + (wallUp * factor_y2);
                 Vector3 tr = Vector3.Lerp(p0, p1, factor_x2) + (wallUp * factor_y2);
 
-                partitions.Add(new Partition(tl, tr, bl, br));
+                Partition partition = new (tl, tr, bl, br);
+                partitions.Add(partition);
+                //add the partitiom centerpoints to the list of partition centers and place them on index x,y
+                centerPoints.Add(partition.middlePoint);
             }
+            partitionCenters.Add(centerPoints);
         }
     }
-    private void OnDrawGizmos()
+
+    //function that draws the center points of the partitions in the console as 2d array of unicode characters
+    void DrawPartitionCenters()
+    {
+        string s = "";
+        foreach (var centerPoints in partitionCenters)
+        {
+            foreach (var center in centerPoints)
+            {
+               s += "■";
+            }
+            s += "\n";
+        }
+        s += "\n";
+        Debug.Log(s);
+    }
+
+    private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
         if (lineGenerator == null) { return; }
@@ -140,19 +164,29 @@ public class WallGeneration : MonoBehaviour
 
         if (partitions == null) return;
 
-        foreach (var partition in partitions)
-        {
-            // Draw corner points in blue
-            Gizmos.color = Color.blue;
-            float size = 0.1f / wallPartitionResulution;
-            Gizmos.DrawSphere(partition.topLeft, size);
-            Gizmos.DrawSphere(partition.topRight, size);
-            Gizmos.DrawSphere(partition.bottomLeft, size);
-            Gizmos.DrawSphere(partition.bottomRight, size);
+        //foreach (var partition in partitions)
+        //{
+        //    // Draw corner points in blue
+        //    Gizmos.color = Color.blue;
+        //    float size = 0.1f / wallPartitionResulution;
+        //    Gizmos.DrawSphere(partition.topLeft, size);
+        //    Gizmos.DrawSphere(partition.topRight, size);
+        //    Gizmos.DrawSphere(partition.bottomLeft, size);
+        //    Gizmos.DrawSphere(partition.bottomRight, size);
 
-            // Draw middle point in black
-            Gizmos.color = Color.black;
-            Gizmos.DrawSphere(partition.middlePoint, size);
+        //    // Draw middle point in black
+        //    Gizmos.color = Color.black;
+        //    Gizmos.DrawSphere(partition.middlePoint, size);
+        //}
+
+        //Draw the center points of the partitions
+        foreach (var centerPoints in partitionCenters)
+        {
+            foreach (var center in centerPoints)
+            {
+                Gizmos.color = Color.black;
+                Gizmos.DrawSphere(center, 0.1f);
+            }
         }
     }
 }
