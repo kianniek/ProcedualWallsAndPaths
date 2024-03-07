@@ -9,6 +9,7 @@ public struct Line
 {
     [SerializeField] public List<Vector3> LinePoints;
     [SerializeField] public List<Vector3> LineDirection;
+
 }
 public class LineGenerator : MonoBehaviour
 {

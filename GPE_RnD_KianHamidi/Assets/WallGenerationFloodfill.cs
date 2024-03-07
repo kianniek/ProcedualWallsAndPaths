@@ -7,8 +7,6 @@ public class WallGenerationFloodfill : MonoBehaviour
     [SerializeField] bool combineMeshes = false;
     [Space(10)]
     [Header("Wall Generation")]
-    [Space(10)]
-    [SerializeField] private Vector3 wallLeft, wallRight;
     [SerializeField] private float wallHeight = 2f;
     [SerializeField] private float wallDepth = 0.1f;
     [SerializeField] [Range(0,1)] private float brickDepthDiviation = 0.1f;
@@ -25,7 +23,7 @@ public class WallGenerationFloodfill : MonoBehaviour
     private void Start()
     {
         meshCombinerRuntime = GetComponent<MeshCombinerRuntime>();
-        //lineGenerator = GetComponent<LineGenerator>();
+        lineGenerator = GetComponent<LineGenerator>();
         ReGenerate();
     }
 
@@ -52,18 +50,21 @@ public class WallGenerationFloodfill : MonoBehaviour
                 for (int i = 1; i < line.LinePoints.Count; i++)
                 {
                     if (i - 1 < 0) { continue; }
-                    GenerateWall(line.LinePoints[i-1], line.LinePoints[i], wallHeight, minBrickSize, maxBrickSize);
+                    GenerateWall(line, i, wallHeight, minBrickSize, maxBrickSize);
                 }
             }
         }
         else
         {
-            GenerateWall(wallLeft, wallRight, wallHeight, minBrickSize, maxBrickSize);
+            Debug.LogError("LineGenerator is null");
+            //GenerateWall(wallLeft, wallRight, wallHeight, minBrickSize, maxBrickSize);
         }
     }
 
-    public void GenerateWall(Vector3 bottomLeft, Vector3 bottomRight, float wallHeight, Vector2 minBrickSize, Vector2 maxBrickSize)
+    public void GenerateWall(Line line, int index, float wallHeight, Vector2 minBrickSize, Vector2 maxBrickSize)
     {
+        Vector3 bottomLeft = line.LinePoints[index - 1];
+        Vector3 bottomRight = line.LinePoints[index];
         float wallWidth = Vector3.Distance(bottomLeft, bottomRight);
         //get the up, right and forward vectors of the wall
         Vector3 wallUp = Vector3.up * wallHeight;
@@ -79,13 +80,13 @@ public class WallGenerationFloodfill : MonoBehaviour
         int numberOfBricksHigh = Mathf.FloorToInt(wallHeight / minBrickSize.y * resolution);
         isPositionOccupied = new bool[numberOfBricksAcross, numberOfBricksHigh];
 
-        FillWallArea(bottomLeft, wallUp,wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
+        FillWallArea(line, index, bottomLeft, wallUp,wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
 
         if (!combineMeshes) { return; }
         meshCombinerRuntime.CombineMeshes();
     }
 
-    private void FillWallArea(Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, Vector2 minBrickSize, Vector2 maxBrickSize, ref bool[,] isPositionOccupied)
+    private void FillWallArea(Line line, int index ,Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, Vector2 minBrickSize, Vector2 maxBrickSize, ref bool[,] isPositionOccupied)
     {
         for (int y = 0; y < numberOfBricksHigh; y++)
         {
@@ -126,7 +127,13 @@ public class WallGenerationFloodfill : MonoBehaviour
                                 wallRight.normalized * ((x + brickWidth / 2f) / resolution) +
                                 wallUp.normalized * ((y + brickHeight / 2f) / resolution);
 
-                            InstantiateBrickAt(position, currentBrickSize, wallRight, wallUp, wallForward);
+                            //create a 0 to 1 value for the x position of the brick
+                            float xNormalized = (float)x / numberOfBricksAcross;
+
+                            //lerp the up rotation of the brick from the bottomLeft to the bottomRight point direction of the line
+                            Vector3 rotation = Vector3.Lerp(line.LineDirection[index-1], line.LineDirection[index], xNormalized);
+
+                            InstantiateBrickAt(position, rotation, currentBrickSize, wallRight, wallUp, wallForward);
                         }
                     }
                 }
@@ -148,7 +155,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         //if not all positions are occupied, call the function again
         if (!allPositionsOccupied)
         {
-            FillWallArea(bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
+            FillWallArea(line, index, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
         }
     }
     private Vector2 ChooseBrickSize(Vector2 minBrickSize, Vector2 maxBrickSize)
@@ -158,10 +165,11 @@ public class WallGenerationFloodfill : MonoBehaviour
         return new Vector2(width, height);
     }
 
-    private void InstantiateBrickAt(Vector3 position, Vector2 size, Vector3 wallRight, Vector3 wallUp, Vector3 wallForward)
+    private void InstantiateBrickAt(Vector3 position, Vector3 rotation,  Vector2 size, Vector3 wallRight, Vector3 wallUp, Vector3 wallForward)
     {
         GameObject brick = Instantiate(brickPrefab, position, Quaternion.identity, transform);
         brick.transform.localScale = new Vector3(size.x, size.y, wallDepth);
+        brick.transform.Rotate(rotation);
         brick.transform.Rotate(Vector3.up, Random.Range(-rotationDiviation.x, rotationDiviation.x));
         //oriant the brick to the wall by using the wall vectors
         brick.transform.right = wallRight;
@@ -181,36 +189,41 @@ public class WallGenerationFloodfill : MonoBehaviour
     //draw gizmo of relevant information
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(wallLeft, wallRight);
-        //add sphere to the left and right wall
-        Gizmos.DrawSphere(wallLeft, 0.1f);
-        Gizmos.DrawSphere(wallRight, 0.1f);
-
-        //draw the wall height from the two points and add a line connecing the two points
-        Vector3 wallHeightVector = new Vector3(0, wallHeight, 0);
-        Gizmos.DrawLine(wallLeft, wallLeft + wallHeightVector);
-        Gizmos.DrawLine(wallRight, wallRight + wallHeightVector);
-        Gizmos.DrawLine(wallLeft + wallHeightVector, wallRight + wallHeightVector);
-
-        if (isPositionOccupied != null)
+        //draw the wall using the lineGenerator points
+        if (lineGenerator != null)
         {
-            for (int y = 0; y < isPositionOccupied.GetLength(1); y++)
+            foreach (var line in lineGenerator.Lines)
             {
-                for (int x = 0; x < isPositionOccupied.GetLength(0); x++)
+                for (int i = 1; i < line.LinePoints.Count; i++)
                 {
-                    if (isPositionOccupied[x, y])
-                    {
-                        Gizmos.color = Color.red;
-                        Gizmos.DrawSphere(new Vector3(x, y, 0), 0.1f);
-                    }
-                    else
-                    {
-                        Gizmos.color = Color.green;
-                        Gizmos.DrawSphere(new Vector3(x, y, 0), 0.1f);
-                    }
+                    if (i - 1 < 0) { continue; }
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawLine(line.LinePoints[i - 1], line.LinePoints[i]);
+                    //draw the wall height from the two points and add a line connecing the two points
+                    Vector3 wallHeightVector = new Vector3(0, wallHeight, 0);
+                    Gizmos.DrawLine(line.LinePoints[i - 1], line.LinePoints[i] + wallHeightVector);
                 }
             }
         }
+
+        //if (isPositionOccupied != null)
+        //{
+        //    for (int y = 0; y < isPositionOccupied.GetLength(1); y++)
+        //    {
+        //        for (int x = 0; x < isPositionOccupied.GetLength(0); x++)
+        //        {
+        //            if (isPositionOccupied[x, y])
+        //            {
+        //                Gizmos.color = Color.red;
+        //                Gizmos.DrawSphere(new Vector3(x, y, 0), 0.1f);
+        //            }
+        //            else
+        //            {
+        //                Gizmos.color = Color.green;
+        //                Gizmos.DrawSphere(new Vector3(x, y, 0), 0.1f);
+        //            }
+        //        }
+        //    }
+        //}
     }
 }
