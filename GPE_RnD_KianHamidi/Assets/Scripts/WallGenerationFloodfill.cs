@@ -57,7 +57,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         float wallWidth = Vector3.Distance(bottomLeft, bottomRight);
         //get the up, right and forward vectors of the wall
         Vector3 wallUp = Vector3.up * wallHeight;
-        Vector3 wallRight = (bottomRight - bottomLeft).normalized * wallWidth;
+        Vector3 wallRight = line.linePoints[index].direction * wallWidth;
         Vector3 wallForward = Vector3.Cross(wallUp, wallRight).normalized * wallDepth;
 
         //draw the wall vectors in the scene view
@@ -120,9 +120,9 @@ public class WallGenerationFloodfill : MonoBehaviour
                             float xNormalized = (float)x / numberOfBricksAcross;
 
                             //lerp the up rotation of the brick from the bottomLeft to the bottomRight point direction of the line
-                            Vector3 rotation = Vector3.Lerp(line.linePoints[index-1].direction, line.linePoints[index].direction, xNormalized);
+                            Vector3 rotation = line.linePoints[index].direction;
 
-                            InstantiateBrickAt(position, rotation, currentBrickSize, wallRight, wallUp, wallForward);
+                            InstantiateBrickAt(position, rotation, currentBrickSize);
                         }
                     }
                 }
@@ -154,16 +154,12 @@ public class WallGenerationFloodfill : MonoBehaviour
         return new Vector2(width, height);
     }
 
-    private void InstantiateBrickAt(Vector3 position, Vector3 rotation,  Vector2 size, Vector3 wallRight, Vector3 wallUp, Vector3 wallForward)
+    private void InstantiateBrickAt(Vector3 position, Vector3 rotation,  Vector2 size)
     {
         GameObject brick = Instantiate(brickPrefab, position, Quaternion.identity, transform);
         brick.transform.localScale = new Vector3(size.x, size.y, wallDepth);
         brick.transform.Rotate(rotation);
         brick.transform.Rotate(Vector3.up, Random.Range(-rotationDiviation.x, rotationDiviation.x));
-        //oriant the brick to the wall by using the wall vectors
-        brick.transform.right = wallRight;
-        brick.transform.up = wallUp;
-        brick.transform.forward = wallForward;
         //randlomize rotation of the brick on the y axis by rotationDiviation degrees
         if (rotationDiviation != Vector2.zero)
         {

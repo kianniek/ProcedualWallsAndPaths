@@ -27,16 +27,34 @@ public class SplineGenrator : MonoBehaviour
     public bool isLooping = true;
     private bool isDrawingLine;
     Vector3 mouseWorldPos;
+    WallGenerationFloodfill wallGenerationFloodfill;
+    private void Start()
+    {
+        wallGenerationFloodfill = GetComponent<WallGenerationFloodfill>();
+    }
 
-    protected virtual void DrawLine()
+    private void Update()
+    {
+        DrawLine();
+
+        if (Input.GetKey(KeyCode.Return))
+        {
+            wallGenerationFloodfill.GenerateOnLine(line);
+        }
+    }
+
+    protected void DrawLine()
     {
         if (Input.GetMouseButton(0))
         {
             if (!isDrawingLine)
             {
                 // Start a new line
-                Line line = new();
-                line.controlPoints = new List<Point>();
+                print("Drawing Line");
+                line = new()
+                {
+                    controlPoints = new List<Point>()
+                };
                 Point point = new()
                 {
                     position = GetMouseWorldPosition()
@@ -62,9 +80,13 @@ public class SplineGenrator : MonoBehaviour
         {
             // Mouse button released, end current line drawing
             isDrawingLine = false;
+            wallGenerationFloodfill.GenerateOnLine(line);
+            print("Stopped Drawing Line");
+
         }
     }
-    protected virtual Vector3 GetMouseWorldPosition()
+
+    protected Vector3 GetMouseWorldPosition()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
@@ -76,6 +98,7 @@ public class SplineGenrator : MonoBehaviour
         }
         return mouseWorldPos;
     }
+
     //Display a spline between 2 points derived with the Catmull-Rom spline algorithm
     void DisplayCatmullRomSpline(int pos)
     {
@@ -103,18 +126,22 @@ public class SplineGenrator : MonoBehaviour
             //Find the coordinate between the end points with a Catmull-Rom spline
             Vector3 newPos = GetCatmullRomPosition(t, p0, p1, p2, p3);
 
+            Vector3 right = Vector3.Cross(Vector3.up, (newPos - lastPos).normalized);
+
             //Add this point to the line
             Point point = new()
             {
                 position = newPos,
-                direction = (lastPos - newPos).normalized
+                //get the right direction for the line using 
+                direction = right
             };
             this.line.linePoints.Add(point);
 
             //Draw this line segment
             Gizmos.color = Color.white;
             Gizmos.DrawLine(lastPos, newPos);
-            Gizmos.DrawRay(newPos, (point.direction / 2));
+            //Calculate the right diretionusing the cross product of the up and forward vectors
+            Gizmos.DrawRay(newPos, right);
 
             //Save this pos so we can draw the next line segment
             lastPos = newPos;
@@ -142,7 +169,7 @@ public class SplineGenrator : MonoBehaviour
     }
 
     //Returns a position between 4 Vector3 with Catmull-Rom spline algorithm
-    //http://www.iquilezles.org/www/articles/minispline/minispline.htm
+    //https://iquilezles.org/articles/minispline/
     Vector3 GetCatmullRomPosition(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
     {
         //The coefficients of the cubic polynomial (except the 0.5f * which I added later for performance)
@@ -171,6 +198,13 @@ public class SplineGenrator : MonoBehaviour
             }
 
             DisplayCatmullRomSpline(i);
+        }
+
+        //Draw the control points
+        for (int i = 0; i < this.line.controlPoints.Count; i++)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(this.line.controlPoints[i].position, 0.1f);
         }
 
     }

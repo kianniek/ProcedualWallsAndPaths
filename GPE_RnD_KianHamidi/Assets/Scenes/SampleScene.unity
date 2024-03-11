@@ -749,7 +749,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1305805495}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef274f3984078a646808de0b10060c16, type: 3}
   m_Name: 
@@ -800,36 +800,36 @@ MonoBehaviour:
       direction: {x: 0, y: 0, z: 0}
     linePoints:
     - position: {x: 0.696, y: 0, z: 1.1600001}
-      direction: {x: 0.88491815, y: 0, z: -0.4657466}
-    - position: {x: 0.24800001, y: 0, z: 1.24}
-      direction: {x: 0.98442763, y: 0, z: -0.1757905}
-    - position: {x: -0.24800003, y: 0, z: 1.24}
-      direction: {x: 1, y: 0, z: 0}
-    - position: {x: -0.696, y: 0, z: 1.1599998}
-      direction: {x: 0.9844275, y: 0, z: 0.175791}
-    - position: {x: -1, y: 0, z: 1}
-      direction: {x: 0.8849184, y: 0, z: 0.46574605}
-    - position: {x: -1.1600001, y: 0, z: 0.696}
-      direction: {x: 0.4657466, y: 0, z: 0.88491815}
-    - position: {x: -1.24, y: 0, z: 0.24800001}
-      direction: {x: 0.1757905, y: 0, z: 0.98442763}
-    - position: {x: -1.24, y: 0, z: -0.24800003}
-      direction: {x: 0, y: 0, z: 1}
-    - position: {x: -1.1599998, y: 0, z: -0.696}
-      direction: {x: -0.175791, y: 0, z: 0.9844275}
-    - position: {x: -1, y: 0, z: -1}
-      direction: {x: -0.46574605, y: 0, z: 0.8849184}
-    - position: {x: -0.696, y: 0, z: -1.1600001}
       direction: {x: -0.88491815, y: 0, z: 0.4657466}
-    - position: {x: -0.24800001, y: 0, z: -1.24}
+    - position: {x: 0.24800001, y: 0, z: 1.24}
       direction: {x: -0.98442763, y: 0, z: 0.1757905}
-    - position: {x: 0.24800003, y: 0, z: -1.24}
+    - position: {x: -0.24800003, y: 0, z: 1.24}
       direction: {x: -1, y: 0, z: 0}
-    - position: {x: 0.696, y: 0, z: -1.1599998}
+    - position: {x: -0.696, y: 0, z: 1.1599998}
       direction: {x: -0.9844275, y: 0, z: -0.175791}
-    - position: {x: 1, y: 0, z: -1}
+    - position: {x: -1, y: 0, z: 1}
       direction: {x: -0.8849184, y: 0, z: -0.46574605}
-  lineSampleResolution: 0.01
+    - position: {x: -1.1600001, y: 0, z: 0.696}
+      direction: {x: -0.4657466, y: 0, z: -0.88491815}
+    - position: {x: -1.24, y: 0, z: 0.24800001}
+      direction: {x: -0.1757905, y: 0, z: -0.98442763}
+    - position: {x: -1.24, y: 0, z: -0.24800003}
+      direction: {x: 0, y: 0, z: -1}
+    - position: {x: -1.1599998, y: 0, z: -0.696}
+      direction: {x: 0.175791, y: 0, z: -0.9844275}
+    - position: {x: -1, y: 0, z: -1}
+      direction: {x: 0.46574605, y: 0, z: -0.8849184}
+    - position: {x: -0.696, y: 0, z: -1.1600001}
+      direction: {x: 0.88491815, y: 0, z: -0.4657466}
+    - position: {x: -0.24800001, y: 0, z: -1.24}
+      direction: {x: 0.98442763, y: 0, z: -0.1757905}
+    - position: {x: 0.24800003, y: 0, z: -1.24}
+      direction: {x: 1, y: 0, z: 0}
+    - position: {x: 0.696, y: 0, z: -1.1599998}
+      direction: {x: 0.9844275, y: 0, z: 0.175791}
+    - position: {x: 1, y: 0, z: -1}
+      direction: {x: 0.8849184, y: 0, z: 0.46574605}
+  lineSampleResolution: 1
   splineResolution: 0.2
   isLooping: 0
 --- !u!1 &1566202447
