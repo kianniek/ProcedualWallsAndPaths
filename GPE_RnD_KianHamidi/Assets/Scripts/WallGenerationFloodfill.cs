@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,7 +11,7 @@ public class WallGenerationFloodfill : MonoBehaviour
     [Header("Wall Generation")]
     [SerializeField] private float wallHeight = 2f;
     [SerializeField] private float wallDepth = 0.1f;
-    [SerializeField] [Range(0,1)] private float brickDepthDiviation = 0.1f;
+    [SerializeField][Range(0, 1)] private float brickDepthDiviation = 0.1f;
     [SerializeField] private Vector2Int minBrickSize, maxBrickSize;
     [SerializeField] private GameObject brickPrefab;
     [SerializeField] private float resolution = 8;
@@ -18,20 +19,18 @@ public class WallGenerationFloodfill : MonoBehaviour
     private bool[,] isPositionOccupied;
 
     MeshCombinerRuntime meshCombinerRuntime;
+    SplineGenrator splineGenrator;
 
     private void Start()
     {
         meshCombinerRuntime = GetComponent<MeshCombinerRuntime>();
+        splineGenrator = GetComponent<SplineGenrator>();
         ReGenerate();
     }
 
     private void Update()
     {
-        //when enter is pressed, generate a new wall and destroy the old one
-        if (Input.GetKey(KeyCode.Return))
-        {
-            ReGenerate();
-        }
+
     }
 
     public void ReGenerate()
@@ -44,39 +43,51 @@ public class WallGenerationFloodfill : MonoBehaviour
 
     public void GenerateOnLine(SplineGenrator.Line line)
     {
-        for (int i = 1; i < line.linePoints.Count; i++)
+        foreach (Transform child in transform)
         {
-            GenerateWall(line, i, wallHeight, minBrickSize, maxBrickSize);
+            Destroy(child.gameObject);
+        }
+        for (int i = 0; i < line.linePoints.Count -1; i++)
+        {
+            GenerateWall(line, i, wallHeight);
         }
     }
 
-    public void GenerateWall(SplineGenrator.Line line, int index, float wallHeight, Vector2 minBrickSize, Vector2 maxBrickSize)
+    public void GenerateWall(SplineGenrator.Line line, int index, float wallHeight)
     {
-        Vector3 bottomLeft = line.linePoints[index - 1].position;
-        Vector3 bottomRight = line.linePoints[index].position;
+        Vector3 bottomLeft = line.linePoints[index].position;
+        Vector3 bottomRight = line.linePoints[index + 1].position;
         float wallWidth = Vector3.Distance(bottomLeft, bottomRight);
+
         //get the up, right and forward vectors of the wall
-        Vector3 wallUp = Vector3.up * wallHeight;
-        Vector3 wallRight = line.linePoints[index].direction * wallWidth;
-        Vector3 wallForward = Vector3.Cross(wallUp, wallRight).normalized * wallDepth;
+        Vector3 wallUp = Vector3.up;
+        Vector3 wallRight = line.linePoints[index + 1].direction;
+        Vector3 wallForward = (bottomRight - bottomLeft).normalized;
 
         //draw the wall vectors in the scene view
-        Debug.DrawLine(bottomLeft, bottomLeft + wallRight, Color.red, 10);
-        Debug.DrawLine(bottomLeft, bottomLeft + wallUp, Color.green, 10);
-        Debug.DrawLine(bottomLeft, bottomLeft + wallForward, Color.blue, 10);
+        Debug.DrawLine(bottomLeft, bottomLeft + wallRight, Color.red, 3);
+        Debug.DrawLine(bottomLeft, bottomLeft + wallUp, Color.green, 3);
+        Debug.DrawLine(bottomLeft, bottomLeft + wallForward, Color.blue, 3);
 
         int numberOfBricksAcross = Mathf.FloorToInt(wallWidth / minBrickSize.x * resolution);
         int numberOfBricksHigh = Mathf.FloorToInt(wallHeight / minBrickSize.y * resolution);
         isPositionOccupied = new bool[numberOfBricksAcross, numberOfBricksHigh];
 
-        FillWallArea(line, index, bottomLeft, wallUp,wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
+        //make a wallsegemnt gameobject
+        GameObject wallSegment = new("WallSegment");
+        wallSegment.transform.parent = transform;
+        FillWallArea(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, ref isPositionOccupied);
 
         if (!combineMeshes) { return; }
         meshCombinerRuntime.CombineMeshes();
     }
 
-    private void FillWallArea(SplineGenrator.Line line, int index ,Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, Vector2 minBrickSize, Vector2 maxBrickSize, ref bool[,] isPositionOccupied)
+    private void FillWallArea(GameObject wallSegment, SplineGenrator.Line line, int index, float wallWidth, Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, ref bool[,] isPositionOccupied)
     {
+        wallSegment.transform.position = bottomLeft;
+        Quaternion targetRotation = Quaternion.LookRotation(wallRight, Vector3.up);
+        wallSegment.transform.rotation = targetRotation;
+
         for (int y = 0; y < numberOfBricksHigh; y++)
         {
             for (int x = 0; x < numberOfBricksAcross; x++)
@@ -111,18 +122,21 @@ public class WallGenerationFloodfill : MonoBehaviour
                                     isPositionOccupied[x + i, y + j] = true;
                                 }
                             }
-                            // Calculate the position more accurately
-                            Vector3 position = bottomLeft +
-                                wallRight.normalized * ((x + brickWidth / 2f) / resolution) +
-                                wallUp.normalized * ((y + brickHeight / 2f) / resolution);
 
-                            //create a 0 to 1 value for the x position of the brick
-                            float xNormalized = (float)x / numberOfBricksAcross;
+                            // Calculate the local position offset for the brick based on its size and the resolution.
+                            Vector3 localPositionOffset = wallForward.normalized * ((x + brickWidth / 2f) / resolution) +
+                                                          wallUp.normalized * ((y + brickHeight / 2f) / resolution);
 
+                            // Adjust the position by combining the spline point and the local offset.
+                            Vector3 position = bottomLeft + localPositionOffset;
+
+                            //xLerp that is an float from 0 to 1 that is an lerp between the start and end of the line
+                            float xLerp = (float)x / (float)numberOfBricksAcross;
+                            print(xLerp);
                             //lerp the up rotation of the brick from the bottomLeft to the bottomRight point direction of the line
-                            Vector3 rotation = line.linePoints[index].direction;
+                            Vector3 rotation = wallRight;
 
-                            InstantiateBrickAt(position, rotation, currentBrickSize);
+                            InstantiateBrickAt(position, rotation, currentBrickSize, wallSegment);
                         }
                     }
                 }
@@ -141,12 +155,29 @@ public class WallGenerationFloodfill : MonoBehaviour
                 }
             }
         }
+
         //if not all positions are occupied, call the function again
         if (!allPositionsOccupied)
         {
-            FillWallArea(line, index, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, minBrickSize, maxBrickSize, ref isPositionOccupied);
+            FillWallArea(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, ref isPositionOccupied);
         }
+
+        //check size of wallsegment and set it to the correct size which is the length the line
+        float wallSegementLength = GetWallSegmentSize(wallSegment).magnitude;
+        wallSegment.transform.localScale = Vector3.one + wallSegment.transform.right * wallSegementLength;
     }
+
+    //function that gets the physical size of a wall segment (gameobject with bricks as children)
+    public Vector3 GetWallSegmentSize(GameObject wallSegment)
+    {
+        Vector3 size = Vector3.zero;
+        foreach (Transform child in wallSegment.transform)
+        {
+            size = Vector3.Max(size, child.GetComponent<MeshRenderer>().bounds.size);
+        }
+        return size;
+    }
+
     private Vector2 ChooseBrickSize(Vector2 minBrickSize, Vector2 maxBrickSize)
     {
         float width = Random.Range((int)minBrickSize.x, (int)maxBrickSize.x + 1) / resolution;
@@ -154,23 +185,34 @@ public class WallGenerationFloodfill : MonoBehaviour
         return new Vector2(width, height);
     }
 
-    private void InstantiateBrickAt(Vector3 position, Vector3 rotation,  Vector2 size)
+    private GameObject InstantiateBrickAt(Vector3 position, Vector3 forwardDirection, Vector2 size, GameObject parent)
     {
-        GameObject brick = Instantiate(brickPrefab, position, Quaternion.identity, transform);
+        GameObject brick = Instantiate(brickPrefab, position, Quaternion.identity, parent.transform);
+        // Scale the brick according to its size. No change needed here.
         brick.transform.localScale = new Vector3(size.x, size.y, wallDepth);
-        brick.transform.Rotate(rotation);
-        brick.transform.Rotate(Vector3.up, Random.Range(-rotationDiviation.x, rotationDiviation.x));
-        //randlomize rotation of the brick on the y axis by rotationDiviation degrees
-        if (rotationDiviation != Vector2.zero)
-        {
-            brick.transform.Rotate(Vector3.up, Random.Range(-rotationDiviation.x, rotationDiviation.x));
-            brick.transform.Rotate(Vector3.right, Random.Range(-rotationDiviation.y, rotationDiviation.y));
-        }
+
+        // Align the brick's forward direction with the spline's tangent at this point.
+        // This replaces the previous rotation assignment.
+        Quaternion targetRotation = Quaternion.LookRotation(forwardDirection, Vector3.up);
+
+        // Apply a small random rotation around the brick's up axis to add variation.
+        // This keeps the deviation but ensures bricks generally follow the spline's direction.
+        float yRotationVariance = Random.Range(-rotationDiviation.x, rotationDiviation.x);
+        float xRotationVariance = Random.Range(-rotationDiviation.y, rotationDiviation.y);
+
+        // Create a rotation that combines the spline's direction with the random variance.
+        Quaternion varianceRotation = Quaternion.Euler(xRotationVariance, yRotationVariance, 0);
+        brick.transform.rotation = targetRotation * varianceRotation;
+
+        // Adjust the brick's depth position randomly within a specified range.
+        // This adds depth variation to the bricks.
         if (brickDepthDiviation != 0)
         {
-            brick.transform.position += new Vector3(0,0,Random.Range(0, wallDepth * brickDepthDiviation));
+            brick.transform.position += brick.transform.forward * Random.Range(0, wallDepth * brickDepthDiviation);
         }
+        return brick;
     }
+
     //draw gizmo of relevant information
     private void OnDrawGizmos()
     {

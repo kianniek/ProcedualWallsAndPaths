@@ -31,6 +31,8 @@ public class SplineGenrator : MonoBehaviour
     private void Start()
     {
         wallGenerationFloodfill = GetComponent<WallGenerationFloodfill>();
+        //this.line.linePoints = new List<Point>();
+
     }
 
     private void Update()
@@ -43,6 +45,22 @@ public class SplineGenrator : MonoBehaviour
         }
     }
 
+    private void FixedUpdate()
+    {
+        this.line.linePoints = new List<Point>();
+
+        //Draw the Catmull-Rom spline between the points
+        for (int i = 0; i < this.line.controlPoints.Count; i++)
+        {
+            //...if we are not making a looping line
+            if ((i == this.line.controlPoints.Count - 1) && !isLooping)
+            {
+                continue;
+            }
+
+            CalculateCatmullRomSpline(i);
+        }
+    }
     protected void DrawLine()
     {
         if (Input.GetMouseButton(0))
@@ -58,6 +76,7 @@ public class SplineGenrator : MonoBehaviour
                 Point point = new()
                 {
                     position = GetMouseWorldPosition()
+
                 };
                 line.controlPoints.Add(point);
                 isDrawingLine = true;
@@ -100,7 +119,7 @@ public class SplineGenrator : MonoBehaviour
     }
 
     //Display a spline between 2 points derived with the Catmull-Rom spline algorithm
-    void DisplayCatmullRomSpline(int pos)
+    void CalculateCatmullRomSpline(int pos)
     {
         //The 4 points we need to form a spline between p1 and p2
         Vector3 p0 = this.line.controlPoints[ClampListPos(pos - 1)].position;
@@ -137,16 +156,43 @@ public class SplineGenrator : MonoBehaviour
             };
             this.line.linePoints.Add(point);
 
-            //Draw this line segment
-            Gizmos.color = Color.white;
-            Gizmos.DrawLine(lastPos, newPos);
-            //Calculate the right diretionusing the cross product of the up and forward vectors
-            Gizmos.DrawRay(newPos, right);
+
 
             //Save this pos so we can draw the next line segment
             lastPos = newPos;
         }
     }
+
+    public Vector3 GetPointAlongSpline(float t)
+    {
+        // Ensure t is within bounds.
+        t = Mathf.Clamp01(t);
+
+        // Calculate the appropriate segment of the spline t falls into.
+        int totalPoints = line.controlPoints.Count;
+        float perSegmentT = 1f / (totalPoints - (isLooping ? 0 : 3));
+        int segmentIndex = Mathf.Min(Mathf.FloorToInt(t / perSegmentT), totalPoints - (isLooping ? 1 : 4));
+
+        // Calculate the local t for the specific segment.
+        float localT = (t % perSegmentT) / perSegmentT;
+
+        // Adjust index for looping if necessary.
+        if (isLooping && segmentIndex >= totalPoints - 3)
+        {
+            segmentIndex = totalPoints - 3; // Wrap to the start for looping.
+        }
+
+        // Use the Catmull-Rom formula to find the exact position along the spline.
+        Vector3 p0 = line.controlPoints[ClampListPos(segmentIndex - 1)].position;
+        Vector3 p1 = line.controlPoints[ClampListPos(segmentIndex)].position;
+        Vector3 p2 = line.controlPoints[ClampListPos(segmentIndex + 1)].position;
+        Vector3 p3 = line.controlPoints[ClampListPos(segmentIndex + 2)].position;
+
+        return GetCatmullRomPosition(localT, p0, p1, p2, p3);
+    }
+
+    // Make sure ClampListPos and GetCatmullRomPosition methods are accessible (public or internal if needed).
+
 
     //Clamp the list positions to allow looping
     int ClampListPos(int pos)
@@ -187,17 +233,20 @@ public class SplineGenrator : MonoBehaviour
     //Display without having to press play
     void OnDrawGizmos()
     {
-        this.line.linePoints = new List<Point>();
-        //Draw the Catmull-Rom spline between the points
-        for (int i = 0; i < this.line.controlPoints.Count; i++)
+        FixedUpdate();
+        //draw line between the line points
+        for (int i = 0; i < this.line.linePoints.Count; i++)
         {
-            //...if we are not making a looping line
-            if ((i == this.line.controlPoints.Count - 1) && !isLooping)
+            if (i < this.line.linePoints.Count - 1)
             {
-                continue;
+                //Draw the line
+                Gizmos.color = Color.white;
+                Gizmos.DrawLine(this.line.linePoints[i].position, this.line.linePoints[i + 1].position);
             }
-
-            DisplayCatmullRomSpline(i);
+            //Draw this line segment
+            Gizmos.color = Color.cyan;
+            //Calculate the right diretionusing the cross product of the up and forward vectors
+            Gizmos.DrawRay(this.line.linePoints[i].position, this.line.linePoints[i].direction);
         }
 
         //Draw the control points
