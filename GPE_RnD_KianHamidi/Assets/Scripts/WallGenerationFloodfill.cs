@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class WallGenerationFloodfill : MonoBehaviour
 {
@@ -18,12 +19,9 @@ public class WallGenerationFloodfill : MonoBehaviour
 
     MeshCombinerRuntime meshCombinerRuntime;
 
-    LineGenerator lineGenerator;
-
     private void Start()
     {
         meshCombinerRuntime = GetComponent<MeshCombinerRuntime>();
-        lineGenerator = GetComponent<LineGenerator>();
         ReGenerate();
     }
 
@@ -42,29 +40,20 @@ public class WallGenerationFloodfill : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-        //if the line generator is not null, generate the wall from the lines
-        if (lineGenerator != null)
+    }
+
+    public void GenerateOnLine(SplineGenrator.Line line)
+    {
+        for (int i = 1; i < line.linePoints.Count; i++)
         {
-            foreach (var line in lineGenerator.Lines)
-            {
-                for (int i = 1; i < line.LinePoints.Count; i++)
-                {
-                    if (i - 1 < 0) { continue; }
-                    GenerateWall(line, i, wallHeight, minBrickSize, maxBrickSize);
-                }
-            }
-        }
-        else
-        {
-            Debug.LogError("LineGenerator is null");
-            //GenerateWall(wallLeft, wallRight, wallHeight, minBrickSize, maxBrickSize);
+            GenerateWall(line, i, wallHeight, minBrickSize, maxBrickSize);
         }
     }
 
-    public void GenerateWall(Line line, int index, float wallHeight, Vector2 minBrickSize, Vector2 maxBrickSize)
+    public void GenerateWall(SplineGenrator.Line line, int index, float wallHeight, Vector2 minBrickSize, Vector2 maxBrickSize)
     {
-        Vector3 bottomLeft = line.LinePoints[index - 1];
-        Vector3 bottomRight = line.LinePoints[index];
+        Vector3 bottomLeft = line.linePoints[index - 1].position;
+        Vector3 bottomRight = line.linePoints[index].position;
         float wallWidth = Vector3.Distance(bottomLeft, bottomRight);
         //get the up, right and forward vectors of the wall
         Vector3 wallUp = Vector3.up * wallHeight;
@@ -86,7 +75,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         meshCombinerRuntime.CombineMeshes();
     }
 
-    private void FillWallArea(Line line, int index ,Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, Vector2 minBrickSize, Vector2 maxBrickSize, ref bool[,] isPositionOccupied)
+    private void FillWallArea(SplineGenrator.Line line, int index ,Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, Vector2 minBrickSize, Vector2 maxBrickSize, ref bool[,] isPositionOccupied)
     {
         for (int y = 0; y < numberOfBricksHigh; y++)
         {
@@ -131,7 +120,7 @@ public class WallGenerationFloodfill : MonoBehaviour
                             float xNormalized = (float)x / numberOfBricksAcross;
 
                             //lerp the up rotation of the brick from the bottomLeft to the bottomRight point direction of the line
-                            Vector3 rotation = Vector3.Lerp(line.LineDirection[index-1], line.LineDirection[index], xNormalized);
+                            Vector3 rotation = Vector3.Lerp(line.linePoints[index-1].direction, line.linePoints[index].direction, xNormalized);
 
                             InstantiateBrickAt(position, rotation, currentBrickSize, wallRight, wallUp, wallForward);
                         }
@@ -189,23 +178,6 @@ public class WallGenerationFloodfill : MonoBehaviour
     //draw gizmo of relevant information
     private void OnDrawGizmos()
     {
-        //draw the wall using the lineGenerator points
-        if (lineGenerator != null)
-        {
-            foreach (var line in lineGenerator.Lines)
-            {
-                for (int i = 1; i < line.LinePoints.Count; i++)
-                {
-                    if (i - 1 < 0) { continue; }
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawLine(line.LinePoints[i - 1], line.LinePoints[i]);
-                    //draw the wall height from the two points and add a line connecing the two points
-                    Vector3 wallHeightVector = new Vector3(0, wallHeight, 0);
-                    Gizmos.DrawLine(line.LinePoints[i - 1], line.LinePoints[i] + wallHeightVector);
-                }
-            }
-        }
-
         //if (isPositionOccupied != null)
         //{
         //    for (int y = 0; y < isPositionOccupied.GetLength(1); y++)

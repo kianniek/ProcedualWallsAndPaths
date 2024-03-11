@@ -13,14 +13,14 @@ public struct Line
 }
 public class LineGenerator : MonoBehaviour
 {
-    [SerializeField] bool mouseStabelizing = true;
-    [SerializeField] private int smoothingLevel = 5; // Number of positions to average
-    private Queue<Vector3> positionsQueue = new Queue<Vector3>();
-    private Vector3 mouseWorldPos;
+    [SerializeField] protected bool mouseStabelizing = true;
+    [SerializeField] protected int smoothingLevel = 5; // Number of positions to average
+    protected Queue<Vector3> positionsQueue = new Queue<Vector3>();
+    protected Vector3 mouseWorldPos;
 
-    [SerializeField] float lineResolution = 1;
+    [SerializeField] protected float lineResolution = 1;
     // Changed to a list of a list of Vector3 to support multiple disconnected lines.
-    [SerializeField] private List<Line> lines;
+    [SerializeField] protected List<Line> lines;
 
     //event to invoke when a line segment is finished
     public UnityEvent<string, GameObject> OnLineSegmentFinished;
@@ -29,10 +29,10 @@ public class LineGenerator : MonoBehaviour
         get { return lines; }
         set { lines = value; }
     }
-    private bool isDrawingLine = false; // Track if we're currently drawing a line.
+    protected bool isDrawingLine = false; // Track if we're currently drawing a line.
 
 
-    Vector3 lastMousePos;
+    protected Vector3 lastMousePos;
     public Vector3 WorldMouseDelta
     {
         get
@@ -50,7 +50,7 @@ public class LineGenerator : MonoBehaviour
         DrawLine();
     }
 
-    private void DrawLine()
+    protected virtual void DrawLine()
     {
         if (Input.GetMouseButton(0))
         {
@@ -93,7 +93,7 @@ public class LineGenerator : MonoBehaviour
             ClearMousePositionQueue();
         }
     }
-    Vector3 GetMouseWorldPosition()
+    protected virtual Vector3 GetMouseWorldPosition()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
@@ -106,7 +106,7 @@ public class LineGenerator : MonoBehaviour
         return mouseWorldPos;
     }
 
-    void EnqueueMousePosition(Vector3 position)
+    protected virtual void EnqueueMousePosition(Vector3 position)
     {
         if (positionsQueue.Count >= smoothingLevel)
         {
@@ -115,13 +115,13 @@ public class LineGenerator : MonoBehaviour
         positionsQueue.Enqueue(position); // Add the new position
     }
 
-    void ClearMousePositionQueue()
+    protected virtual void ClearMousePositionQueue()
     {
         if (positionsQueue.Count == 0) { return; }
         positionsQueue.Clear();
     }
 
-    Vector3 CalculateSmoothedPosition()
+    protected virtual Vector3 CalculateSmoothedPosition()
     {
         if (mouseStabelizing) { return GetMouseWorldPosition(); }
         Vector3 sum = Vector3.zero;
