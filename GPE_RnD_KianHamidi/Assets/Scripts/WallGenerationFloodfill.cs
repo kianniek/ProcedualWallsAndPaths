@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -6,8 +7,10 @@ public class WallGenerationFloodfill : MonoBehaviour
 {
     [Header("Optimalisation")]
     [Space(10)]
+
     [SerializeField] bool combineMeshes = false;
     [Space(10)]
+
     [Header("Wall Generation")]
     [SerializeField] private float wallHeight = 2f;
     [SerializeField] private float wallDepth = 0.1f;
@@ -21,6 +24,9 @@ public class WallGenerationFloodfill : MonoBehaviour
     MeshCombinerRuntime meshCombinerRuntime;
     SplineGenrator splineGenrator;
 
+    [Space(10)]
+    [Header("Debugging")]
+    [SerializeField] private bool debug = false;
     private void Start()
     {
         meshCombinerRuntime = GetComponent<MeshCombinerRuntime>();
@@ -47,7 +53,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
-        for (int i = 0; i < line.linePoints.Count -1; i++)
+        for (int i = 0; i < line.linePoints.Count - 1; i++)
         {
             GenerateWall(line, i, wallHeight);
         }
@@ -65,9 +71,12 @@ public class WallGenerationFloodfill : MonoBehaviour
         Vector3 wallForward = (bottomRight - bottomLeft).normalized;
 
         //draw the wall vectors in the scene view
-        Debug.DrawLine(bottomLeft, bottomLeft + wallRight, Color.red, 3);
-        Debug.DrawLine(bottomLeft, bottomLeft + wallUp, Color.green, 3);
-        Debug.DrawLine(bottomLeft, bottomLeft + wallForward, Color.blue, 3);
+        if(debug)
+        {
+            Debug.DrawLine(bottomLeft, bottomLeft + wallRight, Color.red, 3);
+            Debug.DrawLine(bottomLeft, bottomLeft + wallUp, Color.green, 3);
+            Debug.DrawLine(bottomLeft, bottomLeft + wallForward, Color.blue, 3);
+        }
 
         int numberOfBricksAcross = Mathf.FloorToInt(wallWidth / minBrickSize.x * resolution);
         int numberOfBricksHigh = Mathf.FloorToInt(wallHeight / minBrickSize.y * resolution);
@@ -76,6 +85,8 @@ public class WallGenerationFloodfill : MonoBehaviour
         //make a wallsegemnt gameobject
         GameObject wallSegment = new("WallSegment");
         wallSegment.transform.parent = transform;
+
+        //fill the wall area with bricks using a fitting algorithm
         FillWallArea(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, ref isPositionOccupied);
 
         if (!combineMeshes) { return; }
@@ -132,7 +143,6 @@ public class WallGenerationFloodfill : MonoBehaviour
 
                             //xLerp that is an float from 0 to 1 that is an lerp between the start and end of the line
                             float xLerp = (float)x / (float)numberOfBricksAcross;
-                            print(xLerp);
                             //lerp the up rotation of the brick from the bottomLeft to the bottomRight point direction of the line
                             Vector3 rotation = wallRight;
 
@@ -161,22 +171,80 @@ public class WallGenerationFloodfill : MonoBehaviour
         {
             FillWallArea(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, ref isPositionOccupied);
         }
+        else
+        {
+            //reset the wallsegment position and rotation befofre getting the size but first store the position and rotation
+            Vector3 position = wallSegment.transform.position;
+            Quaternion rotation = wallSegment.transform.rotation;
+            wallSegment.transform.position = Vector3.zero;
+            wallSegment.transform.rotation = Quaternion.identity;
 
-        //check size of wallsegment and set it to the correct size which is the length the line
-        float wallSegementLength = GetWallSegmentSize(wallSegment).magnitude;
-        wallSegment.transform.localScale = Vector3.one + wallSegment.transform.right * wallSegementLength;
+            // Assuming GetPhysicalWallSegmentSize calculates the length of the segment correctly
+            float actualWallSegmentLength = GetPhysicalWallSegmentSize(wallSegment).x; // or z, depending on your orientation
+            //if wallWidth or actualWallSegmentLength is 0, add a small value to it to avoid division by zero
+            if (wallWidth == 0) { wallWidth = 0.01f; }
+            if (actualWallSegmentLength == 0) { actualWallSegmentLength = 0.01f; }
+            float segmentGapScalingFactor = wallWidth / actualWallSegmentLength;
+            wallSegment.transform.localScale = (Vector3.one - wallSegment.transform.right) + wallSegment.transform.right * segmentGapScalingFactor;
+            Debug.Log($"Segment gap: {segmentGapScalingFactor}");
+            Debug.Log($"wallWidth: {wallWidth}");
+            Debug.Log($"actualWallSegmentLength: {actualWallSegmentLength}");
+            // Reset the position and rotation to the stored values
+            wallSegment.transform.position = position;
+            wallSegment.transform.rotation = rotation;
+        }
     }
 
     //function that gets the physical size of a wall segment (gameobject with bricks as children)
-    public Vector3 GetWallSegmentSize(GameObject wallSegment)
+    public Vector3 GetPhysicalWallSegmentSize(GameObject wallSegment)
     {
-        Vector3 size = Vector3.zero;
-        foreach (Transform child in wallSegment.transform)
-        {
-            size = Vector3.Max(size, child.GetComponent<MeshRenderer>().bounds.size);
-        }
-        return size;
+        Bounds combinedBounds = CalculateAxisAlignedBounds(wallSegment);
+        DrawBounds(wallSegment);
+
+        // Transform the size from world space to local space
+        Vector3 localSize = wallSegment.transform.InverseTransformVector(combinedBounds.size);
+        Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.right * localSize.x, Color.red, 50f);
+        Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.up * localSize.y, Color.blue, 50f);
+        Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.forward * localSize.z, Color.green, 50f);
+        return localSize; // Return the local size which is the size relative to the parent object
     }
+
+    public Bounds CalculateAxisAlignedBounds(GameObject wallSegment)
+    {
+        // Initialize an empty bounds object
+        Bounds axisAlignedBounds = new Bounds(Vector3.zero, Vector3.zero);
+        bool boundsInitialized = false;
+
+        // Iterate over each child (brick) of the wallSegment
+        foreach (Renderer renderer in wallSegment.GetComponentsInChildren<Renderer>())
+        {
+            // For each renderer, get its bounds
+            Bounds rendererBounds = renderer.bounds;
+
+            // Convert the renderer's bounds to the local space of the wallSegment, ignoring rotation
+            Bounds localBounds = new Bounds(
+                wallSegment.transform.InverseTransformPoint(rendererBounds.center),
+                Vector3.Scale(rendererBounds.size, wallSegment.transform.InverseTransformDirection(wallSegment.transform.lossyScale))
+            );
+
+            // If this is the first renderer, initialize the bounds with its local bounds
+            if (!boundsInitialized)
+            {
+                axisAlignedBounds = localBounds;
+                boundsInitialized = true;
+            }
+            else
+            {
+                // Otherwise, encapsulate the existing bounds with the new renderer's bounds
+                axisAlignedBounds.Encapsulate(localBounds);
+            }
+        }
+
+        // Return the combined, axis-aligned bounds
+        return axisAlignedBounds;
+    }
+
+
 
     private Vector2 ChooseBrickSize(Vector2 minBrickSize, Vector2 maxBrickSize)
     {
@@ -235,5 +303,40 @@ public class WallGenerationFloodfill : MonoBehaviour
         //        }
         //    }
         //}
+    }
+
+    void DrawBounds(GameObject wallSegment)
+    {
+        // Assuming 'combinedBounds' is the Bounds of your wallSegment
+        Bounds combinedBounds = CalculateAxisAlignedBounds(wallSegment); // Ensure this function gives you the world space bounds
+        // Extract the min and max points of the bounds
+        Vector3 min = combinedBounds.min;
+        Vector3 max = combinedBounds.max;
+
+        // Calculate the corners of the bounds
+        Vector3 corner1 = new Vector3(min.x, min.y, min.z);
+        Vector3 corner2 = new Vector3(max.x, min.y, min.z);
+        Vector3 corner3 = new Vector3(max.x, min.y, max.z);
+        Vector3 corner4 = new Vector3(min.x, min.y, max.z);
+        Vector3 corner5 = new Vector3(min.x, max.y, min.z);
+        Vector3 corner6 = new Vector3(max.x, max.y, min.z);
+        Vector3 corner7 = new Vector3(max.x, max.y, max.z);
+        Vector3 corner8 = new Vector3(min.x, max.y, max.z);
+
+        // Draw lines between the corners to form the wire box
+        Debug.DrawLine(corner1, corner2, Color.red, duration: 50f);
+        Debug.DrawLine(corner2, corner3, Color.red, duration: 50f);
+        Debug.DrawLine(corner3, corner4, Color.red, duration: 50f);
+        Debug.DrawLine(corner4, corner1, Color.red, duration: 50f);
+
+        Debug.DrawLine(corner5, corner6, Color.red, duration: 50f);
+        Debug.DrawLine(corner6, corner7, Color.red, duration: 50f);
+        Debug.DrawLine(corner7, corner8, Color.red, duration: 50f);
+        Debug.DrawLine(corner8, corner5, Color.red, duration: 50f);
+
+        Debug.DrawLine(corner1, corner5, Color.red, duration: 50f);
+        Debug.DrawLine(corner2, corner6, Color.red, duration: 50f);
+        Debug.DrawLine(corner3, corner7, Color.red, duration: 50f);
+        Debug.DrawLine(corner4, corner8, Color.red, duration: 50f);
     }
 }

@@ -39,7 +39,7 @@ public class SplineGenrator : MonoBehaviour
     {
         DrawLine();
 
-        if (Input.GetKey(KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Return))
         {
             wallGenerationFloodfill.GenerateOnLine(line);
         }
@@ -119,13 +119,13 @@ public class SplineGenrator : MonoBehaviour
     }
 
     //Display a spline between 2 points derived with the Catmull-Rom spline algorithm
-    void CalculateCatmullRomSpline(int pos)
+    void CalculateCatmullRomSpline(int controlPointIndex)
     {
         //The 4 points we need to form a spline between p1 and p2
-        Vector3 p0 = this.line.controlPoints[ClampListPos(pos - 1)].position;
-        Vector3 p1 = this.line.controlPoints[ClampListPos(pos)].position;
-        Vector3 p2 = this.line.controlPoints[ClampListPos(pos + 1)].position;
-        Vector3 p3 = this.line.controlPoints[ClampListPos(pos + 2)].position;
+        Vector3 p0 = this.line.controlPoints[ClampListPos(controlPointIndex - 1)].position;
+        Vector3 p1 = this.line.controlPoints[ClampListPos(controlPointIndex)].position;
+        Vector3 p2 = this.line.controlPoints[ClampListPos(controlPointIndex + 1)].position;
+        Vector3 p3 = this.line.controlPoints[ClampListPos(controlPointIndex + 2)].position;
 
         //The start position of the line
         Vector3 lastPos = p1;
@@ -156,7 +156,7 @@ public class SplineGenrator : MonoBehaviour
             };
             this.line.linePoints.Add(point);
 
-
+            Debug.DrawLine(lastPos, newPos);
 
             //Save this pos so we can draw the next line segment
             lastPos = newPos;
@@ -195,23 +195,23 @@ public class SplineGenrator : MonoBehaviour
 
 
     //Clamp the list positions to allow looping
-    int ClampListPos(int pos)
+    int ClampListPos(int controlPointIndex)
     {
-        if (pos < 0)
+        if (controlPointIndex < 0)
         {
-            pos = this.line.controlPoints.Count - 1;
+            controlPointIndex = this.line.controlPoints.Count - 1;
         }
 
-        if (pos > this.line.controlPoints.Count)
+        if (controlPointIndex > this.line.controlPoints.Count)
         {
-            pos = 1;
+            controlPointIndex = 1;
         }
-        else if (pos > this.line.controlPoints.Count - 1)
+        else if (controlPointIndex > this.line.controlPoints.Count - 1)
         {
-            pos = 0;
+            controlPointIndex = 0;
         }
 
-        return pos;
+        return controlPointIndex;
     }
 
     //Returns a position between 4 Vector3 with Catmull-Rom spline algorithm
@@ -237,17 +237,17 @@ public class SplineGenrator : MonoBehaviour
         //draw line between the line points
         for (int i = 0; i < this.line.linePoints.Count; i++)
         {
-            if (i < this.line.linePoints.Count - 1)
-            {
-                //Draw the line
-                Gizmos.color = Color.white;
-                Gizmos.DrawLine(this.line.linePoints[i].position, this.line.linePoints[i + 1].position);
-            }
             //Draw this line segment
             Gizmos.color = Color.cyan;
             //Calculate the right diretionusing the cross product of the up and forward vectors
             Gizmos.DrawRay(this.line.linePoints[i].position, this.line.linePoints[i].direction);
         }
+
+
+        //Calculate the right diretionusing the cross product of the up and forward vectors
+        Gizmos.DrawRay(this.line.linePoints[^1].position, this.line.linePoints[^1].direction);
+
+
 
         //Draw the control points
         for (int i = 0; i < this.line.controlPoints.Count; i++)

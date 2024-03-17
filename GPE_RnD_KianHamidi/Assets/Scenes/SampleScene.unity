@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -659,13 +659,14 @@ MonoBehaviour:
   combineMeshes: 0
   wallHeight: 2
   wallDepth: 0.1
-  brickDepthDiviation: 0
+  brickDepthDiviation: 0.5
   minBrickSize: {x: 1, y: 1}
   maxBrickSize: {x: 2, y: 2}
   brickPrefab: {fileID: 7057152729200783137, guid: 5c1737f4ce7a6cd4298da9560f3ba995,
     type: 3}
   resolution: 8
-  rotationDiviation: {x: 0, y: 0}
+  rotationDiviation: {x: 1, y: 1}
+  debug: 0
 --- !u!114 &1305805502
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -692,46 +693,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   line:
     controlPoints:
-    - position: {x: 1, y: 0, z: 1}
+    - position: {x: -1, y: 0, z: 0}
       direction: {x: 0, y: 0, z: 0}
-    - position: {x: -1, y: 0, z: 1}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: -1, y: 0, z: -1}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: 1, y: 0, z: -1}
+    - position: {x: 1, y: 0, z: 0}
       direction: {x: 0, y: 0, z: 0}
     linePoints:
-    - position: {x: 0.696, y: 0, z: 1.1600001}
-      direction: {x: 0.4657466, y: -0, z: 0.88491815}
-    - position: {x: 0.24800001, y: 0, z: 1.24}
-      direction: {x: 0.1757905, y: -0, z: 0.98442763}
-    - position: {x: -0.24800003, y: 0, z: 1.24}
-      direction: {x: 0, y: -0, z: 1}
-    - position: {x: -0.696, y: 0, z: 1.1599998}
-      direction: {x: -0.175791, y: 0, z: 0.9844275}
-    - position: {x: -1, y: 0, z: 1}
-      direction: {x: -0.46574605, y: 0, z: 0.8849184}
-    - position: {x: -1.1600001, y: 0, z: 0.696}
-      direction: {x: -0.88491815, y: 0, z: 0.4657466}
-    - position: {x: -1.24, y: 0, z: 0.24800001}
-      direction: {x: -0.98442763, y: 0, z: 0.1757905}
-    - position: {x: -1.24, y: 0, z: -0.24800003}
-      direction: {x: -1, y: 0, z: 0}
-    - position: {x: -1.1599998, y: 0, z: -0.696}
-      direction: {x: -0.9844275, y: 0, z: -0.175791}
-    - position: {x: -1, y: 0, z: -1}
-      direction: {x: -0.8849184, y: 0, z: -0.46574605}
-    - position: {x: -0.696, y: 0, z: -1.1600001}
-      direction: {x: -0.4657466, y: 0, z: -0.88491815}
-    - position: {x: -0.24800001, y: 0, z: -1.24}
-      direction: {x: -0.1757905, y: 0, z: -0.98442763}
-    - position: {x: 0.24800003, y: 0, z: -1.24}
+    - position: {x: -0.792, y: 0, z: 0}
       direction: {x: 0, y: 0, z: -1}
-    - position: {x: 0.696, y: 0, z: -1.1599998}
-      direction: {x: 0.175791, y: 0, z: -0.9844275}
-    - position: {x: 1, y: 0, z: -1}
-      direction: {x: 0.46574605, y: 0, z: -0.8849184}
-  lineSampleResolution: 0.1
+    - position: {x: -0.29599997, y: 0, z: 0}
+      direction: {x: 0, y: 0, z: -1}
+    - position: {x: 0.296, y: 0, z: 0}
+      direction: {x: 0, y: 0, z: -1}
+    - position: {x: 0.79200006, y: 0, z: 0}
+      direction: {x: 0, y: 0, z: -1}
+    - position: {x: 1, y: 0, z: 0}
+      direction: {x: 0, y: 0, z: -1}
+  lineSampleResolution: 1
   splineResolution: 0.2
   isLooping: 0
 --- !u!1 &1566202447
