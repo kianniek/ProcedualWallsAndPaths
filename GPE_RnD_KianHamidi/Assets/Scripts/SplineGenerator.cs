@@ -25,6 +25,7 @@ public class SplineGenrator : MonoBehaviour
 
     //Are we making a line or a loop?
     public bool isLooping = true;
+    bool wasLooping = true;
     private bool isDrawingLine;
     Vector3 mouseWorldPos;
     WallGenerationFloodfill wallGenerationFloodfill;
@@ -32,7 +33,6 @@ public class SplineGenrator : MonoBehaviour
     {
         wallGenerationFloodfill = GetComponent<WallGenerationFloodfill>();
         //this.line.linePoints = new List<Point>();
-
     }
 
     private void Update()
@@ -41,6 +41,12 @@ public class SplineGenrator : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Return))
         {
+            wallGenerationFloodfill.GenerateOnLine(line);
+        }
+
+        if(isLooping != wasLooping)
+        {
+            wasLooping = isLooping;
             wallGenerationFloodfill.GenerateOnLine(line);
         }
     }
@@ -137,6 +143,14 @@ public class SplineGenrator : MonoBehaviour
         //How many times should we loop?
         int loops = Mathf.FloorToInt(1f / resolution);
 
+        //because we start at i=1, we add the first point at p1
+        Point firstPoint = new()
+        {
+            position = lastPos,
+            direction = Vector3.zero
+        };
+        this.line.linePoints.Add(firstPoint);
+        //Loop through each segment of the line
         for (int i = 1; i <= loops; i++)
         {
             //Which t position are we at?

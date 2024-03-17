@@ -53,8 +53,26 @@ public class WallGenerationFloodfill : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+
+        if (debug)
+        {
+            //use a coroutine to generate the wall
+            StartCoroutine(GenerateWallCoroutine(line, wallHeight));
+        }
+        else
+        {
+            for (int i = 0; i < line.linePoints.Count - 1; i++)
+            {
+                GenerateWall(line, i, wallHeight);
+            }
+        }
+    }
+
+    IEnumerator GenerateWallCoroutine(SplineGenrator.Line line, float wallHeight)
+    {
         for (int i = 0; i < line.linePoints.Count - 1; i++)
         {
+            yield return new WaitForSeconds(0.1f);
             GenerateWall(line, i, wallHeight);
         }
     }
@@ -71,7 +89,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         Vector3 wallForward = (bottomRight - bottomLeft).normalized;
 
         //draw the wall vectors in the scene view
-        if(debug)
+        if (debug)
         {
             Debug.DrawLine(bottomLeft, bottomLeft + wallRight, Color.red, 3);
             Debug.DrawLine(bottomLeft, bottomLeft + wallUp, Color.green, 3);
@@ -173,39 +191,53 @@ public class WallGenerationFloodfill : MonoBehaviour
         }
         else
         {
-            //reset the wallsegment position and rotation befofre getting the size but first store the position and rotation
-            Vector3 position = wallSegment.transform.position;
-            Quaternion rotation = wallSegment.transform.rotation;
-            wallSegment.transform.position = Vector3.zero;
-            wallSegment.transform.rotation = Quaternion.identity;
-
-            // Assuming GetPhysicalWallSegmentSize calculates the length of the segment correctly
-            float actualWallSegmentLength = GetPhysicalWallSegmentSize(wallSegment).x; // or z, depending on your orientation
-            //if wallWidth or actualWallSegmentLength is 0, add a small value to it to avoid division by zero
-            if (wallWidth == 0) { wallWidth = 0.01f; }
-            if (actualWallSegmentLength == 0) { actualWallSegmentLength = 0.01f; }
-            float segmentGapScalingFactor = wallWidth / actualWallSegmentLength;
-            wallSegment.transform.localScale = (Vector3.one - wallSegment.transform.right) + wallSegment.transform.right * segmentGapScalingFactor;
-            Debug.Log($"Segment gap: {segmentGapScalingFactor}");
-            Debug.Log($"wallWidth: {wallWidth}");
-            Debug.Log($"actualWallSegmentLength: {actualWallSegmentLength}");
-            // Reset the position and rotation to the stored values
-            wallSegment.transform.position = position;
-            wallSegment.transform.rotation = rotation;
+            FitWallSegementToWall(wallSegment, wallWidth);
         }
     }
 
+    Transform FitWallSegementToWall(GameObject wallSegment, float wallWidth)
+    {
+        //make a Tranform to return
+        Transform newTransform;
+
+        // Adjust segment size and scale after filling is complete
+        Vector3 positionBackup = wallSegment.transform.position;
+        Quaternion rotationBackup = wallSegment.transform.rotation;
+
+        // Reset position and rotation to avoid Bound Calculation issues
+        wallSegment.transform.position = Vector3.zero;
+        wallSegment.transform.rotation = Quaternion.identity;
+
+        // Get the actual size of the wall segment
+        float actualWallSegmentLength = GetPhysicalWallSegmentSize(wallSegment).x; // Adjust based on orientation
+
+        // Calculate the scaling factor to fit the wall segment to the wall
+        wallWidth = wallWidth == 0 ? 0.01f : wallWidth; // Avoid division by zero
+        actualWallSegmentLength = actualWallSegmentLength == 0 ? 0.01f : actualWallSegmentLength; // Avoid division by zero
+        float segmentGapScalingFactor = wallWidth / actualWallSegmentLength;
+        wallSegment.transform.localScale = (Vector3.one - wallSegment.transform.right) + wallSegment.transform.right * segmentGapScalingFactor;
+
+        // Restore position and rotation
+        wallSegment.transform.position = positionBackup;
+        wallSegment.transform.rotation = rotationBackup;
+
+        newTransform = wallSegment.transform;
+        return newTransform;
+    }
     //function that gets the physical size of a wall segment (gameobject with bricks as children)
     public Vector3 GetPhysicalWallSegmentSize(GameObject wallSegment)
     {
         Bounds combinedBounds = CalculateAxisAlignedBounds(wallSegment);
-        DrawBounds(wallSegment);
-
-        // Transform the size from world space to local space
         Vector3 localSize = wallSegment.transform.InverseTransformVector(combinedBounds.size);
-        Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.right * localSize.x, Color.red, 50f);
-        Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.up * localSize.y, Color.blue, 50f);
-        Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.forward * localSize.z, Color.green, 50f);
+        if (debug)
+        {
+            DrawBounds(wallSegment);
+
+            // Transform the size from world space to local space
+            Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.right * localSize.x, Color.red, 3f);
+            Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.up * localSize.y, Color.blue, 3f);
+            Debug.DrawLine(wallSegment.transform.position, wallSegment.transform.forward * localSize.z, Color.green, 3f);
+        }
         return localSize; // Return the local size which is the size relative to the parent object
     }
 
@@ -243,8 +275,6 @@ public class WallGenerationFloodfill : MonoBehaviour
         // Return the combined, axis-aligned bounds
         return axisAlignedBounds;
     }
-
-
 
     private Vector2 ChooseBrickSize(Vector2 minBrickSize, Vector2 maxBrickSize)
     {
@@ -284,25 +314,7 @@ public class WallGenerationFloodfill : MonoBehaviour
     //draw gizmo of relevant information
     private void OnDrawGizmos()
     {
-        //if (isPositionOccupied != null)
-        //{
-        //    for (int y = 0; y < isPositionOccupied.GetLength(1); y++)
-        //    {
-        //        for (int x = 0; x < isPositionOccupied.GetLength(0); x++)
-        //        {
-        //            if (isPositionOccupied[x, y])
-        //            {
-        //                Gizmos.color = Color.red;
-        //                Gizmos.DrawSphere(new Vector3(x, y, 0), 0.1f);
-        //            }
-        //            else
-        //            {
-        //                Gizmos.color = Color.green;
-        //                Gizmos.DrawSphere(new Vector3(x, y, 0), 0.1f);
-        //            }
-        //        }
-        //    }
-        //}
+
     }
 
     void DrawBounds(GameObject wallSegment)
@@ -324,19 +336,19 @@ public class WallGenerationFloodfill : MonoBehaviour
         Vector3 corner8 = new Vector3(min.x, max.y, max.z);
 
         // Draw lines between the corners to form the wire box
-        Debug.DrawLine(corner1, corner2, Color.red, duration: 50f);
-        Debug.DrawLine(corner2, corner3, Color.red, duration: 50f);
-        Debug.DrawLine(corner3, corner4, Color.red, duration: 50f);
-        Debug.DrawLine(corner4, corner1, Color.red, duration: 50f);
+        Debug.DrawLine(corner1, corner2, Color.red, duration: 3f);
+        Debug.DrawLine(corner2, corner3, Color.red, duration: 3f);
+        Debug.DrawLine(corner3, corner4, Color.red, duration: 3f);
+        Debug.DrawLine(corner4, corner1, Color.red, duration: 3f);
 
-        Debug.DrawLine(corner5, corner6, Color.red, duration: 50f);
-        Debug.DrawLine(corner6, corner7, Color.red, duration: 50f);
-        Debug.DrawLine(corner7, corner8, Color.red, duration: 50f);
-        Debug.DrawLine(corner8, corner5, Color.red, duration: 50f);
+        Debug.DrawLine(corner5, corner6, Color.red, duration: 3f);
+        Debug.DrawLine(corner6, corner7, Color.red, duration: 3f);
+        Debug.DrawLine(corner7, corner8, Color.red, duration: 3f);
+        Debug.DrawLine(corner8, corner5, Color.red, duration: 3f);
 
-        Debug.DrawLine(corner1, corner5, Color.red, duration: 50f);
-        Debug.DrawLine(corner2, corner6, Color.red, duration: 50f);
-        Debug.DrawLine(corner3, corner7, Color.red, duration: 50f);
-        Debug.DrawLine(corner4, corner8, Color.red, duration: 50f);
+        Debug.DrawLine(corner1, corner5, Color.red, duration: 3f);
+        Debug.DrawLine(corner2, corner6, Color.red, duration: 3f);
+        Debug.DrawLine(corner3, corner7, Color.red, duration: 3f);
+        Debug.DrawLine(corner4, corner8, Color.red, duration: 3f);
     }
 }
