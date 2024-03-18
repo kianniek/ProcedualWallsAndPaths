@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WallManager : MonoBehaviour
+public class PathwayManager : MonoBehaviour
 {
-    public GameObject WallPrefab;
+    public GameObject PathwayPrefab;
 
     //enum input.getbuttondown strings
     public enum ButtonDownStrings
@@ -26,11 +26,10 @@ public class WallManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(CursorHandler.Instance.GetCurrentCursorType() != CursorHandler.CursorType.PlacingWall)
+        if (CursorHandler.Instance.GetCurrentCursorType() != CursorHandler.CursorType.PlacingPath)
         {
             return;
         }
-        if (CheckIfEditing()) { return; }
 
         InstatiateWall();
     }
@@ -55,23 +54,8 @@ public class WallManager : MonoBehaviour
         if (Input.GetMouseButtonDown(button))
         {
             print("Drawing");
-            GameObject go = Instantiate(WallPrefab, transform.position, transform.rotation, transform);
+            GameObject go = Instantiate(PathwayPrefab, transform.position, transform.rotation, transform);
             splines.Add(go.GetComponent<SplineGenrator>());
         }
-    }
-
-    bool CheckIfEditing()
-    {
-        //check all SplineGenerator scripts in the children\
-        if(splines == null) { return false; }
-        if(splines.Count == 0) { return false; }
-        foreach (SplineGenrator s in splines)
-        {
-            if (s.IsEditing())
-            {
-                return true;
-            }
-        }
-        return false;
     }
 }

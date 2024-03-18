@@ -10,11 +10,9 @@ public class UICursorToWorldSpace : MonoBehaviour
     public float cursorScale = 1;
     //store the cursor position in world space
     Vector3 cursorPosition;
-    Quaternion cursorRotation;
 
     //store the previous cursor position in world space
     Vector3 previousCursorPosition;
-    Quaternion previousCursorRotation;
 
     // Start is called before the first frame update
     void Start()
@@ -36,7 +34,6 @@ public class UICursorToWorldSpace : MonoBehaviour
         if (Physics.Raycast(ray, out hit, 1000, layerMask))
         {
             cursorPosition = hit.point;
-            cursorRotation = Quaternion.LookRotation(hit.normal);
             transform.localScale = Vector3.Lerp(transform.localScale, Vector3.one * cursorScale, Time.deltaTime * visualSmoothing);
         }
         else
@@ -50,14 +47,11 @@ public class UICursorToWorldSpace : MonoBehaviour
         float smoothing = Mathf.Lerp(visualSmoothing, speed, Time.deltaTime * 10);
         //lerp the cursor position and rotation to smooth out the movement
         cursorPosition = Vector3.Lerp(previousCursorPosition, cursorPosition, smoothing);
-        cursorRotation = Quaternion.Slerp(previousCursorRotation, cursorRotation, smoothing);
 
         //apply the cursor position and rotation to the transform
         transform.position = cursorPosition;
-        transform.rotation = cursorRotation;
 
         previousCursorPosition = cursorPosition;
-        previousCursorRotation = cursorRotation;
     }
 
 

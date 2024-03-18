@@ -4,20 +4,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class SplineGenrator : MonoBehaviour
+public class SplineGenratorPathway : SplineGenrator
 {
-    [Serializable]
-    public struct Point
-    {
-        [SerializeField] public Vector3 position;
-        [SerializeField] public Vector3 direction;
-    }
-    [Serializable]
-    public struct Line
-    {
-        [SerializeField] public List<Point> controlPoints;
-        [SerializeField] public List<Point> linePoints;
-    }
     //Has to be at least 4 points
     public Line line;
     public float lineSampleResolution = 0.01f;
@@ -25,29 +13,16 @@ public class SplineGenrator : MonoBehaviour
     public float splineResolution = 0.2f;
     Vector3 mouseWorldPos;
 
-    //distance we need to be to an existing point to start editing the line
-    public float editDistance = 0.5f;
-
-    //Are we making a line or a loop?
-    public bool isLooping = true;
-    bool wasLooping = true;
-
     //Are we currently drawing a line?
     private bool isDrawingLine;
 
-    //Are we currently editing a line?
-    [SerializeField] private bool isDrawn;
-    [SerializeField] private bool isEditingLine;
-
     //The WallGenerationFloodfill script
-    WallGenerationFloodfill wallGenerationFloodfill;
+    WallGenerationFloodfill pathwayGen;
 
 
     private void Start()
     {
-        wallGenerationFloodfill = GetComponent<WallGenerationFloodfill>();
-
-        wasLooping = isLooping;
+        pathwayGen = GetComponent<WallGenerationFloodfill>();
     }
 
     private void Update()
@@ -56,13 +31,7 @@ public class SplineGenrator : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            wallGenerationFloodfill.GenerateOnLine(line);
-        }
-
-        if (isLooping != wasLooping)
-        {
-            wasLooping = isLooping;
-            wallGenerationFloodfill.GenerateOnLine(line);
+            pathwayGen.GenerateOnLine(line);
         }
     }
 
@@ -73,92 +42,41 @@ public class SplineGenrator : MonoBehaviour
         //Draw the Catmull-Rom spline between the points
         for (int i = 0; i < line.controlPoints.Count; i++)
         {
-            //...if we are not making a looping line
-            if ((i == line.controlPoints.Count - 1) && !isLooping)
-            {
-                continue;
-            }
-
             CalculateCatmullRomSpline(i);
         }
     }
 
-    public virtual void DrawLine()
+    public override void DrawLine()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            mouseWorldPos = GetMouseWorldPosition();
-
-            CheckIfEditLine(mouseWorldPos);
-        }
-
         if (Input.GetMouseButton(0))
         {
             mouseWorldPos = GetMouseWorldPosition();
 
-            if (!isDrawn)
+            if (!isDrawingLine) // Start a new line
             {
-                if (!isDrawingLine) // Start a new line
+                print("Drawing Line");
+                line = new()
                 {
-                    print("Drawing Line");
-                    line = new()
-                    {
-                        controlPoints = new List<Point>()
-                    };
+                    controlPoints = new List<Point>()
+                };
+                Point point = new()
+                {
+                    position = mouseWorldPos
+
+                };
+                line.controlPoints.Add(point);
+                isDrawingLine = true;
+            }
+            else
+            {
+                // Continue the current line
+                if (Vector3.Distance(line.controlPoints[^1].position, mouseWorldPos) > lineSampleResolution)
+                {
                     Point point = new()
                     {
                         position = mouseWorldPos
-
                     };
                     line.controlPoints.Add(point);
-                    isDrawingLine = true;
-                }
-                else
-                {
-                    // Continue the current line
-                    if (Vector3.Distance(line.controlPoints[^1].position, mouseWorldPos) > lineSampleResolution)
-                    {
-                        Point point = new()
-                        {
-                            position = mouseWorldPos
-                        };
-                        line.controlPoints.Add(point);
-                    }
-                }
-            }
-            else if (isEditingLine)
-            {
-                if (!isDrawingLine) // Start a new line
-                {
-                    // Continue the current line from the point closest to the mouse
-                    // Remove all points after the point closest to the mouse
-                    int closestPointIndex = 0;
-                    float closestDistance = float.MaxValue;
-                    for (int j = 0; j < line.controlPoints.Count; j++)
-                    {
-                        float distance = Vector3.Distance(line.controlPoints[j].position, mouseWorldPos);
-                        if (distance < closestDistance)
-                        {
-                            closestDistance = distance;
-                            closestPointIndex = j;
-                        }
-                    }
-                    Debug.Log(closestPointIndex);
-                    line.controlPoints.RemoveRange(closestPointIndex + 1, line.controlPoints.Count - closestPointIndex - 1);
-
-                    isDrawingLine = true;
-                }
-                else
-                {
-                    // Continue the current line
-                    if (Vector3.Distance(line.controlPoints[^1].position, mouseWorldPos) > lineSampleResolution)
-                    {
-                        Point point = new()
-                        {
-                            position = mouseWorldPos
-                        };
-                        line.controlPoints.Add(point);
-                    }
                 }
             }
         }
@@ -166,34 +84,12 @@ public class SplineGenrator : MonoBehaviour
         {
             // Mouse button released, end current line drawing
             isDrawingLine = false;
-            isEditingLine = false;
-            isDrawn = true;
 
-            wallGenerationFloodfill.GenerateOnLine(line);
+            pathwayGen.GenerateOnLine(line);
         }
     }
 
-    //check if we are starting to draw a line very close to one of th points on this existing line
-    public virtual void CheckIfEditLine(Vector3 mousePos)
-    {
-        if (line.controlPoints.Count == 0) { return; }
-        if (isLooping) { isEditingLine = false; return; }
-
-        //only check if the first and last point are close enough to be edited
-        if (Vector3.Distance(line.controlPoints[0].position, mousePos) < editDistance)
-        {
-            isEditingLine = true;
-            return;
-        }
-        if (Vector3.Distance(line.controlPoints[^1].position, mousePos) < editDistance)
-        {
-            isEditingLine = true;
-            return;
-        }
-
-    }
-
-    public virtual Vector3 GetMouseWorldPosition()
+    public override Vector3 GetMouseWorldPosition()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
@@ -207,7 +103,7 @@ public class SplineGenrator : MonoBehaviour
     }
 
     //Display a spline between 2 points derived with the Catmull-Rom spline algorithm
-    public virtual void CalculateCatmullRomSpline(int controlPointIndex)
+    public override void CalculateCatmullRomSpline(int controlPointIndex)
     {
         //The 4 points we need to form a spline between p1 and p2 
         Vector3 p0 = line.controlPoints[ClampListPos(controlPointIndex - 1)].position;
@@ -259,7 +155,7 @@ public class SplineGenrator : MonoBehaviour
         }
     }
 
-    public virtual Vector3 GetPointAlongSpline(float t)
+    public override Vector3 GetPointAlongSpline(float t)
     {
         // Ensure t is within bounds.
         t = Mathf.Clamp01(t);
@@ -291,7 +187,7 @@ public class SplineGenrator : MonoBehaviour
 
 
     //Clamp the list positions to allow looping
-    public virtual int ClampListPos(int controlPointIndex)
+    public override int ClampListPos(int controlPointIndex)
     {
         if (controlPointIndex < 0)
         {
@@ -312,7 +208,7 @@ public class SplineGenrator : MonoBehaviour
 
     //Returns a position between 4 Vector3 with Catmull-Rom spline algorithm
     //https://iquilezles.org/articles/minispline/
-    public virtual Vector3 GetCatmullRomPosition(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+    public override Vector3 GetCatmullRomPosition(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
     {
         //The coefficients of the cubic polynomial (except the 0.5f * which I added later for performance)
         Vector3 a = 2f * p1;
@@ -329,8 +225,8 @@ public class SplineGenrator : MonoBehaviour
     //Display without having to press play
     void OnDrawGizmos()
     {
-        if(line.controlPoints == null || line.linePoints == null) { return; }
-        if(line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
+        if (line.controlPoints == null || line.linePoints == null) { return; }
+        if (line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
         //draw line between the line points
         for (int i = 0; i < line.linePoints.Count; i++)
         {
@@ -353,11 +249,5 @@ public class SplineGenrator : MonoBehaviour
             Gizmos.DrawSphere(line.controlPoints[i].position, 0.1f);
         }
 
-    }
-
-    public bool IsEditing()
-    {
-        CheckIfEditLine(GetMouseWorldPosition());
-        return isEditingLine;
     }
 }

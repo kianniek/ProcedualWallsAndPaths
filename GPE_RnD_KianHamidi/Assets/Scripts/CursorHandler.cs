@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CursorHandler : MonoBehaviour
 {
+    public Button placingWallButton; // Assign in editor or find dynamically
+    public Button placingPathButton; // Assign in editor or find dynamically
+    public static CursorHandler Instance;
     public GameObject cursorHolder;
 
     [SerializeField] private Cursor[] cursors;
@@ -19,12 +23,23 @@ public class CursorHandler : MonoBehaviour
         RemovingAll,
     }
 
-    [SerializeField] private CursorType currentCursor;
+    [SerializeField] CursorType currentCursor;
 
     void Awake() // Using Awake for initialization
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
         InitializeCursorHolder();
         InitializeCursors();
+
+        placingWallButton.onClick.AddListener(() => SetCurrentCursorType(CursorType.PlacingWall));
+        placingPathButton.onClick.AddListener(() => SetCurrentCursorType(CursorType.PlacingPath));
     }
 
     private void InitializeCursorHolder()
@@ -49,7 +64,7 @@ public class CursorHandler : MonoBehaviour
             if (cursor.Object != null)
             {
                 GameObject go = Instantiate(cursor.Object, cursorHolder.transform);
-                //go.SetActive(false);
+                go.SetActive(false);
                 go.name = cursor.name;
                 go.transform.localPosition = cursor.hotspot;
                 cursorDictionary.Add((CursorType)Array.IndexOf(cursors, cursor), cursor);
@@ -79,19 +94,33 @@ public class CursorHandler : MonoBehaviour
 
     public void SetCursor(CursorType cursorType)
     {
-        foreach (var pair in cursorDictionary)
+        foreach (var item in cursorDictionary)
         {
-            // Disable all cursors
-            //pair.Value.Object.SetActive(false);
+            item.Value.Object.SetActive(false);
         }
 
         // Then enable only the selected cursor
-        if (cursorDictionary.TryGetValue(cursorType, out Cursor selectedCursor))
+        Cursor value = new Cursor();
+        if (cursorDictionary.TryGetValue(cursorType, out value))
         {
-            selectedCursor.Object.SetActive(true);
+            Console.WriteLine($"For key = {cursorType}, value = {value}.", value);
+            value.Object.SetActive(true);
         }
+        else
+        {
+            Console.WriteLine($"Key = {cursorType} is not found.");
+        }
+        
     }
-
+    public void SetCurrentCursorType(CursorType cursorType)
+    {
+        Debug.Log($"Cursor type changed to: {cursorType}");
+        currentCursor = cursorType;
+    } 
+    public CursorType GetCurrentCursorType()
+    {
+        return currentCursor;
+    }
 
     [Serializable]
     public struct Cursor
