@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -22,17 +23,31 @@ public class SplineGenrator : MonoBehaviour
     public float lineSampleResolution = 0.01f;
     [Tooltip("The resolution of the spline. The lower the value, the more points the spline will have. /n Make sure it adds up to 1")]
     public float splineResolution = 0.2f;
+    Vector3 mouseWorldPos;
+
+    //distance we need to be to an existing point to start editing the line
+    public float editDistance = 0.5f;
 
     //Are we making a line or a loop?
     public bool isLooping = true;
     bool wasLooping = true;
+
+    //Are we currently drawing a line?
     private bool isDrawingLine;
-    Vector3 mouseWorldPos;
+
+    //Are we currently editing a line?
+    [SerializeField] private bool isDrawn;
+    [SerializeField] private bool isEditingLine;
+
+    //The WallGenerationFloodfill script
     WallGenerationFloodfill wallGenerationFloodfill;
+
+
     private void Start()
     {
         wallGenerationFloodfill = GetComponent<WallGenerationFloodfill>();
-        //this.line.linePoints = new List<Point>();
+
+        wasLooping = isLooping;
     }
 
     private void Update()
@@ -44,7 +59,7 @@ public class SplineGenrator : MonoBehaviour
             wallGenerationFloodfill.GenerateOnLine(line);
         }
 
-        if(isLooping != wasLooping)
+        if (isLooping != wasLooping)
         {
             wasLooping = isLooping;
             wallGenerationFloodfill.GenerateOnLine(line);
@@ -53,13 +68,13 @@ public class SplineGenrator : MonoBehaviour
 
     private void FixedUpdate()
     {
-        this.line.linePoints = new List<Point>();
+        line.linePoints = new List<Point>();
 
         //Draw the Catmull-Rom spline between the points
-        for (int i = 0; i < this.line.controlPoints.Count; i++)
+        for (int i = 0; i < line.controlPoints.Count; i++)
         {
             //...if we are not making a looping line
-            if ((i == this.line.controlPoints.Count - 1) && !isLooping)
+            if ((i == line.controlPoints.Count - 1) && !isLooping)
             {
                 continue;
             }
@@ -67,37 +82,83 @@ public class SplineGenrator : MonoBehaviour
             CalculateCatmullRomSpline(i);
         }
     }
+
     protected void DrawLine()
     {
+        if (Input.GetMouseButtonDown(0))
+        {
+            mouseWorldPos = GetMouseWorldPosition();
+
+            CheckIfEditLine(mouseWorldPos);
+        }
+
         if (Input.GetMouseButton(0))
         {
-            if (!isDrawingLine)
-            {
-                // Start a new line
-                print("Drawing Line");
-                line = new()
-                {
-                    controlPoints = new List<Point>()
-                };
-                Point point = new()
-                {
-                    position = GetMouseWorldPosition()
+            mouseWorldPos = GetMouseWorldPosition();
 
-                };
-                line.controlPoints.Add(point);
-                isDrawingLine = true;
-            }
-            else
+            if (!isDrawn)
             {
-                mouseWorldPos = GetMouseWorldPosition();
-                // Continue the current line
-                if (Vector3.Distance(line.controlPoints[^1].position, mouseWorldPos) > lineSampleResolution)
+                if (!isDrawingLine) // Start a new line
                 {
+                    print("Drawing Line");
+                    line = new()
+                    {
+                        controlPoints = new List<Point>()
+                    };
                     Point point = new()
                     {
                         position = mouseWorldPos
+
                     };
                     line.controlPoints.Add(point);
+                    isDrawingLine = true;
+                }
+                else
+                {
+                    // Continue the current line
+                    if (Vector3.Distance(line.controlPoints[^1].position, mouseWorldPos) > lineSampleResolution)
+                    {
+                        Point point = new()
+                        {
+                            position = mouseWorldPos
+                        };
+                        line.controlPoints.Add(point);
+                    }
+                }
+            }
+            else if (isEditingLine)
+            {
+                if (!isDrawingLine) // Start a new line
+                {
+                    // Continue the current line from the point closest to the mouse
+                    // Remove all points after the point closest to the mouse
+                    int closestPointIndex = 0;
+                    float closestDistance = float.MaxValue;
+                    for (int j = 0; j < line.controlPoints.Count; j++)
+                    {
+                        float distance = Vector3.Distance(line.controlPoints[j].position, mouseWorldPos);
+                        if (distance < closestDistance)
+                        {
+                            closestDistance = distance;
+                            closestPointIndex = j;
+                        }
+                    }
+                    Debug.Log(closestPointIndex);
+                    line.controlPoints.RemoveRange(closestPointIndex + 1, line.controlPoints.Count - closestPointIndex - 1);
+
+                    isDrawingLine = true;
+                }
+                else
+                {
+                    // Continue the current line
+                    if (Vector3.Distance(line.controlPoints[^1].position, mouseWorldPos) > lineSampleResolution)
+                    {
+                        Point point = new()
+                        {
+                            position = mouseWorldPos
+                        };
+                        line.controlPoints.Add(point);
+                    }
                 }
             }
         }
@@ -105,10 +166,31 @@ public class SplineGenrator : MonoBehaviour
         {
             // Mouse button released, end current line drawing
             isDrawingLine = false;
-            wallGenerationFloodfill.GenerateOnLine(line);
-            print("Stopped Drawing Line");
+            isEditingLine = false;
+            isDrawn = true;
 
+            wallGenerationFloodfill.GenerateOnLine(line);
         }
+    }
+
+    //check if we are starting to draw a line very close to one of th points on this existing line
+    protected void CheckIfEditLine(Vector3 mousePos)
+    {
+        if (line.controlPoints.Count == 0) { return; }
+        if (isLooping) { isEditingLine = false; return; }
+
+        //only check if the first and last point are close enough to be edited
+        if (Vector3.Distance(line.controlPoints[0].position, mousePos) < editDistance)
+        {
+            isEditingLine = true;
+            return;
+        }
+        if (Vector3.Distance(line.controlPoints[^1].position, mousePos) < editDistance)
+        {
+            isEditingLine = true;
+            return;
+        }
+
     }
 
     protected Vector3 GetMouseWorldPosition()
@@ -127,11 +209,11 @@ public class SplineGenrator : MonoBehaviour
     //Display a spline between 2 points derived with the Catmull-Rom spline algorithm
     void CalculateCatmullRomSpline(int controlPointIndex)
     {
-        //The 4 points we need to form a spline between p1 and p2
-        Vector3 p0 = this.line.controlPoints[ClampListPos(controlPointIndex - 1)].position;
-        Vector3 p1 = this.line.controlPoints[ClampListPos(controlPointIndex)].position;
-        Vector3 p2 = this.line.controlPoints[ClampListPos(controlPointIndex + 1)].position;
-        Vector3 p3 = this.line.controlPoints[ClampListPos(controlPointIndex + 2)].position;
+        //The 4 points we need to form a spline between p1 and p2 
+        Vector3 p0 = line.controlPoints[ClampListPos(controlPointIndex - 1)].position;
+        Vector3 p1 = line.controlPoints[ClampListPos(controlPointIndex)].position;
+        Vector3 p2 = line.controlPoints[ClampListPos(controlPointIndex + 1)].position;
+        Vector3 p3 = line.controlPoints[ClampListPos(controlPointIndex + 2)].position;
 
         //The start position of the line
         Vector3 lastPos = p1;
@@ -149,7 +231,7 @@ public class SplineGenrator : MonoBehaviour
             position = lastPos,
             direction = Vector3.zero
         };
-        this.line.linePoints.Add(firstPoint);
+        line.linePoints.Add(firstPoint);
         //Loop through each segment of the line
         for (int i = 1; i <= loops; i++)
         {
@@ -168,7 +250,7 @@ public class SplineGenrator : MonoBehaviour
                 //get the right direction for the line using 
                 direction = right
             };
-            this.line.linePoints.Add(point);
+            line.linePoints.Add(point);
 
             Debug.DrawLine(lastPos, newPos);
 
@@ -213,14 +295,14 @@ public class SplineGenrator : MonoBehaviour
     {
         if (controlPointIndex < 0)
         {
-            controlPointIndex = this.line.controlPoints.Count - 1;
+            controlPointIndex = line.controlPoints.Count - 1;
         }
 
-        if (controlPointIndex > this.line.controlPoints.Count)
+        if (controlPointIndex > line.controlPoints.Count)
         {
             controlPointIndex = 1;
         }
-        else if (controlPointIndex > this.line.controlPoints.Count - 1)
+        else if (controlPointIndex > line.controlPoints.Count - 1)
         {
             controlPointIndex = 0;
         }
@@ -247,28 +329,35 @@ public class SplineGenrator : MonoBehaviour
     //Display without having to press play
     void OnDrawGizmos()
     {
-        FixedUpdate();
+        if(line.controlPoints == null || line.linePoints == null) { return; }
+        if(line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
         //draw line between the line points
-        for (int i = 0; i < this.line.linePoints.Count; i++)
+        for (int i = 0; i < line.linePoints.Count; i++)
         {
             //Draw this line segment
             Gizmos.color = Color.cyan;
             //Calculate the right diretionusing the cross product of the up and forward vectors
-            Gizmos.DrawRay(this.line.linePoints[i].position, this.line.linePoints[i].direction);
+            Gizmos.DrawRay(line.linePoints[i].position, line.linePoints[i].direction);
         }
 
-
+        if (line.linePoints.Count == 0) { return; }
         //Calculate the right diretionusing the cross product of the up and forward vectors
-        Gizmos.DrawRay(this.line.linePoints[^1].position, this.line.linePoints[^1].direction);
+        Gizmos.DrawRay(line.linePoints[^1].position, line.linePoints[^1].direction);
 
 
 
         //Draw the control points
-        for (int i = 0; i < this.line.controlPoints.Count; i++)
+        for (int i = 0; i < line.controlPoints.Count; i++)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawSphere(this.line.controlPoints[i].position, 0.1f);
+            Gizmos.DrawSphere(line.controlPoints[i].position, 0.1f);
         }
 
+    }
+
+    public bool IsEditing()
+    {
+        CheckIfEditLine(GetMouseWorldPosition());
+        return isEditingLine;
     }
 }
