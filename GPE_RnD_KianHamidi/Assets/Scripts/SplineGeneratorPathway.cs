@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class SplineGenratorPathway : SplineGenrator
+public class SplineGenratorPathway : SplineGenerator
 {
     //Has to be at least 4 points
     public Line line;

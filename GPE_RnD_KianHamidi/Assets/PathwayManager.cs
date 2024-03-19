@@ -16,11 +16,11 @@ public class PathwayManager : MonoBehaviour
 
     public ButtonDownStrings buttonTypeDown;
 
-    [SerializeField] List<SplineGenrator> splines;
+    [SerializeField] List<SplineGenerator> splines;
     // Start is called before the first frame update
     void Start()
     {
-        splines = new List<SplineGenrator>();
+        splines = new List<SplineGenerator>();
     }
 
     // Update is called once per frame
@@ -55,7 +55,7 @@ public class PathwayManager : MonoBehaviour
         {
             print("Drawing");
             GameObject go = Instantiate(PathwayPrefab, transform.position, transform.rotation, transform);
-            splines.Add(go.GetComponent<SplineGenrator>());
+            splines.Add(go.GetComponent<SplineGenerator>());
         }
     }
 }

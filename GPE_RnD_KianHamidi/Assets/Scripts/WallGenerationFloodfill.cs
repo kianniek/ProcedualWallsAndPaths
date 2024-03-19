@@ -22,7 +22,7 @@ public class WallGenerationFloodfill : MonoBehaviour
     private bool[,] isPositionOccupied;
 
     MeshCombinerRuntime meshCombinerRuntime;
-    SplineGenrator splineGenrator;
+    SplineGenerator splineGenrator;
 
     [Space(10)]
     [Header("Debugging")]
@@ -30,7 +30,7 @@ public class WallGenerationFloodfill : MonoBehaviour
     private void Start()
     {
         meshCombinerRuntime = GetComponent<MeshCombinerRuntime>();
-        splineGenrator = GetComponent<SplineGenrator>();
+        splineGenrator = GetComponent<SplineGenerator>();
         ReGenerate();
     }
 
@@ -47,7 +47,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         }
     }
 
-    public void GenerateOnLine(SplineGenrator.Line line)
+    public void GenerateOnLine(SplineGenerator.Line line)
     {
         foreach (Transform child in transform)
         {
@@ -68,7 +68,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         }
     }
 
-    IEnumerator GenerateWallCoroutine(SplineGenrator.Line line, float wallHeight)
+    IEnumerator GenerateWallCoroutine(SplineGenerator.Line line, float wallHeight)
     {
         for (int i = 0; i < line.linePoints.Count - 1; i++)
         {
@@ -77,7 +77,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         }
     }
 
-    public void GenerateWall(SplineGenrator.Line line, int index, float wallHeight)
+    public void GenerateWall(SplineGenerator.Line line, int index, float wallHeight)
     {
         Vector3 bottomLeft = line.linePoints[index].position;
         Vector3 bottomRight = line.linePoints[index + 1].position;
@@ -111,7 +111,7 @@ public class WallGenerationFloodfill : MonoBehaviour
         meshCombinerRuntime.CombineMeshes();
     }
 
-    private void FillWallArea(GameObject wallSegment, SplineGenrator.Line line, int index, float wallWidth, Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, ref bool[,] isPositionOccupied)
+    private void FillWallArea(GameObject wallSegment, SplineGenerator.Line line, int index, float wallWidth, Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, ref bool[,] isPositionOccupied)
     {
         wallSegment.transform.position = bottomLeft;
         Quaternion targetRotation = Quaternion.LookRotation(wallRight, Vector3.up);

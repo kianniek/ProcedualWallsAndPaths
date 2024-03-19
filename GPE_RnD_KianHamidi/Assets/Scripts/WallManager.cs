@@ -16,11 +16,11 @@ public class WallManager : MonoBehaviour
 
     public ButtonDownStrings buttonTypeDown;
 
-    [SerializeField] List<SplineGenrator> splines;
+    [SerializeField] List<SplineGenerator> splines;
     // Start is called before the first frame update
     void Start()
     {
-        splines = new List<SplineGenrator>();
+        splines = new List<SplineGenerator>();
     }
 
     // Update is called once per frame
@@ -56,7 +56,7 @@ public class WallManager : MonoBehaviour
         {
             print("Drawing");
             GameObject go = Instantiate(WallPrefab, transform.position, transform.rotation, transform);
-            splines.Add(go.GetComponent<SplineGenrator>());
+            splines.Add(go.GetComponent<SplineGenerator>());
         }
     }
 
@@ -65,7 +65,7 @@ public class WallManager : MonoBehaviour
         //check all SplineGenerator scripts in the children\
         if(splines == null) { return false; }
         if(splines.Count == 0) { return false; }
-        foreach (SplineGenrator s in splines)
+        foreach (SplineGenerator s in splines)
         {
             if (s.IsEditing())
             {

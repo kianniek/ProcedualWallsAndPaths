@@ -33,7 +33,7 @@ public class CursorHandler : MonoBehaviour
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        //DontDestroyOnLoad(gameObject);
 
         InitializeCursorHolder();
         InitializeCursors();

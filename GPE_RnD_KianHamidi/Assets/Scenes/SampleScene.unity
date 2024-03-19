@@ -794,7 +794,7 @@ MonoBehaviour:
   m_IsGlobal: 1
   priority: 0
   blendDistance: 0
-  weight: 1
+  weight: 0.604
   sharedProfile: {fileID: 11400000, guid: a6560a915ef98420e9faacc1c7438823, type: 2}
 --- !u!4 &832575519
 Transform:
@@ -1375,7 +1375,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: b20cd7e9373fa284ab5530556110bdf0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1492,7 +1492,7 @@ MonoBehaviour:
     Object: {fileID: 1401185174003580238, guid: 6a0cca745c29eff42806e4ff612f7597,
       type: 3}
     hotspot: {x: 0, y: 0, z: 0}
-  currentCursor: 0
+  currentCursor: 3
 --- !u!4 &1592436686
 Transform:
   m_ObjectHideFlags: 0
@@ -1520,6 +1520,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2050624076}
   - component: {fileID: 2050624077}
+  - component: {fileID: 2050624078}
   m_Layer: 0
   m_Name: PathwayDrawer
   m_TagString: Untagged
@@ -1558,6 +1559,23 @@ MonoBehaviour:
     type: 3}
   buttonTypeDown: 0
   splines: []
+--- !u!114 &2050624078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2050624075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96169e2f313cc764cbdd543e0f043894, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  splineGenerator: {fileID: 0}
+  textureWidth: 1024
+  textureHeight: 1024
+  ground: {fileID: 1566202449}
+  debugDraw: {x: 0, y: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

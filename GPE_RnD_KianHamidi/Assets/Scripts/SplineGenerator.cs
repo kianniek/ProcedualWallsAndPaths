@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class SplineGenrator : MonoBehaviour
+public class SplineGenerator : MonoBehaviour
 {
     [Serializable]
     public struct Point
