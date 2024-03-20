@@ -10,8 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 329161234807508559}
   - component: {fileID: 628427899176353542}
-  - component: {fileID: 5662272751834309946}
-  - component: {fileID: 1657104705128516581}
+  - component: {fileID: 2037361265959141136}
   m_Layer: 0
   m_Name: Pathway
   m_TagString: Untagged
@@ -47,117 +46,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   line:
-    controlPoints:
-    - position: {x: -1, y: 0, z: 0}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: 1, y: 0, z: 0}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: 1, y: 0, z: 3}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: -1, y: 0, z: 3}
-      direction: {x: 0, y: 0, z: 0}
-    linePoints:
-    - position: {x: -1, y: 0, z: 0}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: -0.696, y: 0, z: -0.24000001}
-      direction: {x: -0.6196443, y: 0, z: -0.7848828}
-    - position: {x: -0.24800001, y: 0, z: -0.36}
-      direction: {x: -0.25873613, y: 0, z: -0.96594805}
-    - position: {x: 0.24800003, y: 0, z: -0.36}
-      direction: {x: 0, y: 0, z: -1}
-    - position: {x: 0.696, y: 0, z: -0.24000001}
-      direction: {x: 0.25873613, y: 0, z: -0.96594805}
-    - position: {x: 1, y: 0, z: 0}
-      direction: {x: 0.6196443, y: 0, z: -0.7848828}
-    - position: {x: 1, y: 0, z: 0}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: 1.1600001, y: 0, z: 0.45600003}
-      direction: {x: 0.94359994, y: 0, z: -0.33108786}
-    - position: {x: 1.24, y: 0, z: 1.128}
-      direction: {x: 0.9929883, y: 0, z: -0.11821278}
-    - position: {x: 1.24, y: 0, z: 1.8720002}
-      direction: {x: 1, y: 0, z: 0}
-    - position: {x: 1.1599998, y: 0, z: 2.5439997}
-      direction: {x: 0.9929882, y: -0, z: 0.11821322}
-    - position: {x: 1, y: 0, z: 3}
-      direction: {x: 0.9436001, y: -0, z: 0.3310872}
-    - position: {x: 1, y: 0, z: 3}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: 0.696, y: 0, z: 3.24}
-      direction: {x: 0.6196443, y: -0, z: 0.7848828}
-    - position: {x: 0.24800001, y: 0, z: 3.36}
-      direction: {x: 0.2587359, y: -0, z: 0.9659481}
-    - position: {x: -0.24800003, y: 0, z: 3.3600001}
-      direction: {x: 0.00000048068256, y: -0, z: 1}
-    - position: {x: -0.696, y: 0, z: 3.2399998}
-      direction: {x: -0.25873685, y: 0, z: 0.96594787}
-    - position: {x: -1, y: 0, z: 3}
-      direction: {x: -0.6196439, y: 0, z: 0.7848831}
-    - position: {x: -1, y: 0, z: 3}
-      direction: {x: 0, y: 0, z: 0}
-    - position: {x: -1.1600001, y: 0, z: 2.544}
-      direction: {x: -0.94359994, y: 0, z: 0.3310878}
-    - position: {x: -1.24, y: 0, z: 1.8720001}
-      direction: {x: -0.9929883, y: 0, z: 0.11821281}
-    - position: {x: -1.24, y: 0, z: 1.1279998}
-      direction: {x: -1, y: 0, z: 0}
-    - position: {x: -1.1599998, y: 0, z: 0.45599997}
-      direction: {x: -0.9929882, y: 0, z: -0.118213154}
-    - position: {x: -1, y: 0, z: 0}
-      direction: {x: -0.9436001, y: 0, z: -0.33108747}
+    controlPoints: []
+    linePoints: []
   lineSampleResolution: 1
   splineResolution: 0.2
   editDistance: 0.5
   isLooping: 0
   isDrawn: 0
   isEditingLine: 0
---- !u!23 &5662272751834309946
-MeshRenderer:
+--- !u!114 &2037361265959141136
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3157368097151699200}
   m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1657104705128516581
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3157368097151699200}
-  m_Mesh: {fileID: 0}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c505cffbdefc06488128770d0bfaa00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  splineGeneratorsWallParent: {fileID: 0}
+  splineGeneratorsWall: []
+  carveOutDistance: 0.5

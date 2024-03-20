@@ -45,7 +45,7 @@ public class SplineGenerator : MonoBehaviour
 
     private void Start()
     {
-        wallGenerationFloodfill = GetComponent<WallGenerationFloodfill>();
+        TryGetComponent(out wallGenerationFloodfill);
 
         wasLooping = isLooping;
     }
@@ -54,16 +54,20 @@ public class SplineGenerator : MonoBehaviour
     {
         DrawLine();
 
-        if (Input.GetKeyDown(KeyCode.Return))
+        if(wallGenerationFloodfill != null)
         {
-            wallGenerationFloodfill.GenerateOnLine(line);
-        }
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                wallGenerationFloodfill.GenerateOnLine(line);
+            }
 
-        if (isLooping != wasLooping)
-        {
-            wasLooping = isLooping;
-            wallGenerationFloodfill.GenerateOnLine(line);
+            if (isLooping != wasLooping)
+            {
+                wasLooping = isLooping;
+                wallGenerationFloodfill.GenerateOnLine(line);
+            }
         }
+        
     }
 
     private void FixedUpdate()
@@ -169,7 +173,10 @@ public class SplineGenerator : MonoBehaviour
             isEditingLine = false;
             isDrawn = true;
 
-            wallGenerationFloodfill.GenerateOnLine(line);
+            if(wallGenerationFloodfill != null)
+            {
+                wallGenerationFloodfill.GenerateOnLine(line);
+            }
         }
     }
 
@@ -329,7 +336,8 @@ public class SplineGenerator : MonoBehaviour
     //Display without having to press play
     void OnDrawGizmos()
     {
-        if(line.controlPoints == null || line.linePoints == null) { return; }
+        FixedUpdate();
+        if (line.controlPoints == null || line.linePoints == null) { return; }
         if(line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
         //draw line between the line points
         for (int i = 0; i < line.linePoints.Count; i++)
@@ -344,8 +352,6 @@ public class SplineGenerator : MonoBehaviour
         //Calculate the right diretionusing the cross product of the up and forward vectors
         Gizmos.DrawRay(line.linePoints[^1].position, line.linePoints[^1].direction);
 
-
-
         //Draw the control points
         for (int i = 0; i < line.controlPoints.Count; i++)
         {
@@ -354,6 +360,50 @@ public class SplineGenerator : MonoBehaviour
         }
 
     }
+
+    private bool LineSegmentsIntersect(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, out Vector3 intersection)
+    {
+        intersection = Vector3.zero;
+
+        float d = (p2.x - p1.x) * (p4.z - p3.z) - (p2.z - p1.z) * (p4.x - p3.x);
+        if (d == 0.0f)
+        {
+            return false; // Parallel lines
+        }
+
+        float u = ((p3.x - p1.x) * (p4.z - p3.z) - (p3.z - p1.z) * (p4.x - p3.x)) / d;
+        float v = ((p3.x - p1.x) * (p2.z - p1.z) - (p3.z - p1.z) * (p2.x - p1.x)) / d;
+
+        if (u >= 0.0f && u <= 1.0f && v >= 0.0f && v <= 1.0f)
+        {
+            intersection = p1 + u * (p2 - p1);
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool CheckSplinesIntersection(Line spline1, Line spline2, out List<Vector3> intersections)
+    {
+        intersections = new List<Vector3>();
+        bool foundIntersection = false;
+
+        for (int i = 0; i < spline1.linePoints.Count - 1; i++)
+        {
+            for (int j = 0; j < spline2.linePoints.Count - 1; j++)
+            {
+                if (LineSegmentsIntersect(spline1.linePoints[i].position, spline1.linePoints[i + 1].position,
+                                          spline2.linePoints[j].position, spline2.linePoints[j + 1].position,
+                                          out Vector3 intersection))
+                {
+                    intersections.Add(intersection);
+                    foundIntersection = true;
+                }
+            }
+        }
+        return foundIntersection;
+    }
+
 
     public bool IsEditing()
     {

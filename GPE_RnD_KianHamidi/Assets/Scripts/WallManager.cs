@@ -26,6 +26,7 @@ public class WallManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(CursorHandler.Instance == null) { return; }
         if(CursorHandler.Instance.GetCurrentCursorType() != CursorHandler.CursorType.PlacingWall)
         {
             return;
