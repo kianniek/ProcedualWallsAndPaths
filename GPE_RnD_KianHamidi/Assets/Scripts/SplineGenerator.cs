@@ -20,6 +20,7 @@ public class SplineGenerator : MonoBehaviour
     }
     //Has to be at least 4 points
     public Line line;
+    private List<Point> previousLinePoints;
     public float lineSampleResolution = 0.01f;
     [Tooltip("The resolution of the spline. The lower the value, the more points the spline will have. /n Make sure it adds up to 1")]
     public float splineResolution = 0.2f;
@@ -46,8 +47,11 @@ public class SplineGenerator : MonoBehaviour
     private void Start()
     {
         TryGetComponent(out wallGenerationFloodfill);
-
+        previousLinePoints = new();
         wasLooping = isLooping;
+        CarveOutManager.Instance.carveOutWall.FetchUpdate();
+        CarveOutManager.Instance.carveOutWall.CarveOut();
+
     }
 
     private void Update()
@@ -84,6 +88,14 @@ public class SplineGenerator : MonoBehaviour
             }
 
             CalculateCatmullRomSpline(i);
+        }
+
+        // Example condition to check changes
+        if (HaveLinePointsChanged())
+        {
+            Debug.Log("Line points have changed.");
+            CarveOutManager.Instance.carveOutWall.CarveOut();
+            UpdatePreviousLinePoints();
         }
     }
 
@@ -162,6 +174,7 @@ public class SplineGenerator : MonoBehaviour
                             position = mouseWorldPos
                         };
                         line.controlPoints.Add(point);
+                        CarveOutManager.Instance.carveOutWall.CarveOut();
                     }
                 }
             }
@@ -177,6 +190,9 @@ public class SplineGenerator : MonoBehaviour
             {
                 wallGenerationFloodfill.GenerateOnLine(line);
             }
+
+            //update the carve out wall manager
+            CarveOutManager.Instance.carveOutWall.FetchUpdate();
         }
     }
 
@@ -336,7 +352,6 @@ public class SplineGenerator : MonoBehaviour
     //Display without having to press play
     void OnDrawGizmos()
     {
-        FixedUpdate();
         if (line.controlPoints == null || line.linePoints == null) { return; }
         if(line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
         //draw line between the line points
@@ -361,20 +376,32 @@ public class SplineGenerator : MonoBehaviour
 
     }
 
-    private bool LineSegmentsIntersect(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, out Vector3 intersection)
+    private bool LineSegmentsIntersect(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, out Vector3 intersection, float buffer = 0.5f)
     {
         intersection = Vector3.zero;
 
         float d = (p2.x - p1.x) * (p4.z - p3.z) - (p2.z - p1.z) * (p4.x - p3.x);
-        if (d == 0.0f)
+        if (Math.Abs(d) <= buffer) // Adjusting for buffer in parallel check
         {
-            return false; // Parallel lines
+            // Considering a simple approach to check for "nearness" rather than exact intersection
+            float distance12_34 = Math.Min(Vector3.Distance(p1, p3), Vector3.Distance(p1, p4));
+            distance12_34 = Math.Min(distance12_34, Vector3.Distance(p2, p3));
+            distance12_34 = Math.Min(distance12_34, Vector3.Distance(p2, p4));
+
+            if (distance12_34 <= buffer)
+            {
+                // Find a point that is somewhat central to all points involved for simplicity
+                intersection = (p1 + p2 + p3 + p4) / 4;
+                return true;
+            }
+            return false; // Parallel and not within buffer
         }
 
         float u = ((p3.x - p1.x) * (p4.z - p3.z) - (p3.z - p1.z) * (p4.x - p3.x)) / d;
         float v = ((p3.x - p1.x) * (p2.z - p1.z) - (p3.z - p1.z) * (p2.x - p1.x)) / d;
 
-        if (u >= 0.0f && u <= 1.0f && v >= 0.0f && v <= 1.0f)
+        // Adjusting the intersection check to consider the buffer
+        if (u >= -buffer && u <= 1.0f + buffer && v >= -buffer && v <= 1.0f + buffer)
         {
             intersection = p1 + u * (p2 - p1);
             return true;
@@ -382,6 +409,7 @@ public class SplineGenerator : MonoBehaviour
 
         return false;
     }
+
 
     public bool CheckSplinesIntersection(Line spline1, Line spline2, out List<Vector3> intersections)
     {
@@ -402,6 +430,96 @@ public class SplineGenerator : MonoBehaviour
             }
         }
         return foundIntersection;
+    }
+
+    // Call this method to update previousLinePoints to the current state
+    public void UpdatePreviousLinePoints()
+    {
+        previousLinePoints = new List<Point>(line.linePoints);
+    }
+
+    // This function checks if the line points have changed
+    public bool HaveLinePointsChanged()
+    {
+        if (previousLinePoints.Count != line.linePoints.Count)
+        {
+            return true; // Different number of points
+        }
+
+        for (int i = 0; i < line.linePoints.Count; i++)
+        {
+            // Here, you can compare the positions (and directions if necessary) of each point
+            // This is a simple position comparison; extend it as needed for your use case
+            if (previousLinePoints[i].position != line.linePoints[i].position)
+            {
+                return true; // Found a difference in points
+            }
+        }
+
+        return false; // No changes found
+    }
+
+
+    public void SplitBezierCurveAtT(float t, out List<Point> leftCurve, out List<Point> rightCurve)
+    {
+        // Initialize the output lists
+        leftCurve = new List<Point>();
+        rightCurve = new List<Point>();
+
+        // Assuming `line.controlPoints` contains the control points of the Bezier curve to be split
+        // Check to ensure there are enough control points for a cubic Bezier curve
+        if (line.controlPoints.Count != 4)
+        {
+            Debug.LogError("This function currently supports splitting cubic Bezier curves only.");
+            return;
+        }
+
+        // The first point of the left curve is the first control point of the original curve
+        leftCurve.Add(line.controlPoints[0]);
+
+        // The last point of the right curve is the last control point of the original curve
+        rightCurve.Add(line.controlPoints[line.controlPoints.Count - 1]);
+
+        // Intermediate lists to hold the points at each iteration
+        List<Vector3> currentPoints = line.controlPoints.Select(p => p.position).ToList();
+        List<Vector3> nextPoints = new List<Vector3>();
+
+        // Iteratively apply De Casteljau's algorithm
+        for (int i = 0; i < line.controlPoints.Count; i++)
+        {
+            nextPoints.Clear();
+
+            // Calculate intermediate points
+            for (int j = 0; j < currentPoints.Count - 1; j++)
+            {
+                Vector3 intermediatePoint = Vector3.Lerp(currentPoints[j], currentPoints[j + 1], t);
+                nextPoints.Add(intermediatePoint);
+
+                // The first iteration defines the second control point of the left curve
+                // and the second-to-last control point of the right curve
+                if (i == 0)
+                {
+                    leftCurve.Add(new Point { position = intermediatePoint });
+                }
+                else if (i == line.controlPoints.Count - 2)
+                {
+                    rightCurve.Insert(0, new Point { position = intermediatePoint });
+                }
+            }
+
+            // Prepare for the next iteration
+            currentPoints = new List<Vector3>(nextPoints);
+
+            // The last point of iteration is the split point, added to both curves
+            if (i == line.controlPoints.Count - 2)
+            {
+                leftCurve.Add(new Point { position = currentPoints[0] });
+                rightCurve.Insert(0, new Point { position = currentPoints[0] });
+            }
+        }
+
+        // The right curve control points are added in reverse order; reverse them to maintain order
+        rightCurve.Reverse();
     }
 
 

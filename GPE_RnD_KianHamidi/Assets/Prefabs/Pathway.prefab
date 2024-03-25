@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 329161234807508559}
   - component: {fileID: 628427899176353542}
-  - component: {fileID: 2037361265959141136}
   m_Layer: 0
   m_Name: Pathway
   m_TagString: Untagged
@@ -54,18 +53,3 @@ MonoBehaviour:
   isLooping: 0
   isDrawn: 0
   isEditingLine: 0
---- !u!114 &2037361265959141136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3157368097151699200}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c505cffbdefc06488128770d0bfaa00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  splineGeneratorsWallParent: {fileID: 0}
-  splineGeneratorsWall: []
-  carveOutDistance: 0.5

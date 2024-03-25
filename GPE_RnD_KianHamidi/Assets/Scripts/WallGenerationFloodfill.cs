@@ -13,16 +13,16 @@ public class WallGenerationFloodfill : MonoBehaviour
 
     [Header("Wall Generation")]
     [SerializeField] private float wallHeight = 2f;
-    [SerializeField] private float wallDepth = 0.1f;
-    [SerializeField][Range(0, 1)] private float brickDepthDiviation = 0.1f;
+    [SerializeField] private float wallDepth = 0f;
+    [SerializeField][Range(0, 1)] private float brickDepthDiviation = 0f;
     [SerializeField] private Vector2Int minBrickSize, maxBrickSize;
     [SerializeField] private GameObject brickPrefab;
     [SerializeField] private float resolution = 8;
-    [SerializeField] private Vector2 rotationDiviation = new(1, 1);
+    [SerializeField] private Vector2 rotationDiviation = new(0, 0);
     private bool[,] isPositionOccupied;
 
     MeshCombinerRuntime meshCombinerRuntime;
-    SplineGenerator splineGenrator;
+    SplineGenerator splineGenerator;
 
     [Space(10)]
     [Header("Debugging")]
@@ -30,7 +30,7 @@ public class WallGenerationFloodfill : MonoBehaviour
     private void Start()
     {
         meshCombinerRuntime = GetComponent<MeshCombinerRuntime>();
-        splineGenrator = GetComponent<SplineGenerator>();
+        splineGenerator = GetComponent<SplineGenerator>();
         ReGenerate();
     }
 

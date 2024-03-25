@@ -1,15 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
-[RequireComponent(typeof(SplineGenerator))]
 public class CarveOutWall : MonoBehaviour
 {
     //use the SplineGenerator to get every point on the spline
     public GameObject splineGeneratorsWallParent;
     public List<SplineGenerator> splineGeneratorsWall;
 
+    public GameObject splineGeneratorsPathwayParent;
+    public List<SplineGenerator> splineGeneratorsPathway;
+
     public float carveOutDistance = 0.5f;
-    SplineGenerator this_splineGenerator;
+
+    public LayerMask walllayer;
+
+    List<Collider> colliders;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -18,15 +25,18 @@ public class CarveOutWall : MonoBehaviour
             Debug.LogError("SplineGenerator is not set");
         }
 
-        this_splineGenerator = GetComponent<SplineGenerator>();
+        if (splineGeneratorsPathwayParent == null)
+        {
+            Debug.LogError("SplineGenerator is not set");
+        }
+        colliders = new();
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    public void FetchUpdate()
     {
-        if(splineGeneratorsWallParent == null) { return; }
-
-        Debug.Log($"1");
+        if (splineGeneratorsWallParent == null) { return; }
+        if (splineGeneratorsPathwayParent == null) { return; }
 
         //get the splines from the parent
         splineGeneratorsWall = new List<SplineGenerator>();
@@ -38,47 +48,60 @@ public class CarveOutWall : MonoBehaviour
             }
         }
 
-        if (splineGeneratorsWallParent.transform.childCount == 0) { return; }
+        //get the splines from the parent
+        splineGeneratorsPathway = new List<SplineGenerator>();
+        foreach (Transform child in splineGeneratorsPathwayParent.transform)
+        {
+            if (child.TryGetComponent<SplineGenerator>(out var spline))
+            {
+                splineGeneratorsPathway.Add(spline);
+            }
+        }
+    }
 
-        Debug.Log($"2");
+    public void CarveOut()
+    {
+        if (splineGeneratorsWallParent.transform.childCount == 0) { return; }
+        Debug.Log($"1");
+
+        if(colliders.Count != 0)
+        {
+            foreach (Collider hit in colliders)
+            {
+                hit.gameObject.SetActive(true);
+            }
+        }
+
+        colliders.Clear();
 
         foreach (SplineGenerator spline in splineGeneratorsWall)
         {
             if (spline == null) { continue; }
             if (spline.line.linePoints == null) { continue; }
             if (spline.line.linePoints.Count == 0) { continue; }
-
-            if (spline.CheckSplinesIntersection(this_splineGenerator.line, spline.line, out List<Vector3> splineIntersectPoints))
+            foreach (SplineGenerator path_spline in splineGeneratorsPathway)
             {
-                Debug.Log($"3");
+                Debug.Log($"2");
 
-                CarveOut(splineIntersectPoints);
-            }
-        }
-        
-    }
-
-    void CarveOut(List<Vector3> intersectionPoints)
-    {
-        foreach (Vector3 point in intersectionPoints)
-        {
-            //get each renderer that intersects with the point and carve out the wall at distance carveOutDistance in an sphere
-            Collider[] colliders = Physics.OverlapSphere(point, carveOutDistance);
-            foreach (Collider hit in colliders)
-            {
-                Debug.Log($"4");
-
-                if (hit.TryGetComponent<Renderer>(out var rend))
+                if (spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
                 {
-                    if(rend.gameObject.CompareTag("Wall") == false) { continue; }
-                    Debug.Log($"Carving out wall at {rend.gameObject.name}");
-                    //rend.gameObject.SetActive(false);
+                    foreach (Vector3 point in splineIntersectPoints)
+                    {
+                        Debug.Log($"3");
 
-                    rend.enabled = false;
+                        //get each renderer that intersects with the point and carve out the wall at distance carveOutDistance in an sphere
+                        colliders.AddRange(Physics.OverlapSphere(point, carveOutDistance, walllayer));
+                        Debug.Log($"{colliders.Count}");
+                    }
                 }
             }
         }
 
+        foreach (Collider hit in colliders)
+        {
+            hit.gameObject.SetActive(false);
+            Debug.Log($"Carving out wall");
+        }
     }
 
     //draw the intersection points
@@ -91,15 +114,17 @@ public class CarveOutWall : MonoBehaviour
             if (spline == null) { continue; }
             if (spline.line.linePoints == null) { continue; }
             if (spline.line.linePoints.Count == 0) { continue; }
-
-            if (spline.CheckSplinesIntersection(this_splineGenerator.line, spline.line, out List<Vector3> splineIntersectPoints))
+            foreach (SplineGenerator path_spline in splineGeneratorsPathway)
             {
-                foreach (Vector3 point in splineIntersectPoints)
+                if (spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
                 {
-                    Gizmos.color = Color.red;
-                    Gizmos.DrawSphere(point, 0.1f);
-                    Gizmos.color = Color.cyan;
-                    Gizmos.DrawWireSphere(point, carveOutDistance * 2);
+                    foreach (Vector3 point in splineIntersectPoints)
+                    {
+                        Gizmos.color = Color.red;
+                        Gizmos.DrawSphere(point, 0.1f);
+                        Gizmos.color = Color.cyan;
+                        Gizmos.DrawWireSphere(point, carveOutDistance);
+                    }
                 }
             }
         }
