@@ -366,8 +366,6 @@ public class SplineGenerator : MonoBehaviour
             //Calculate the right diretionusing the cross product of the up and forward vectors
             Gizmos.DrawRay(line.linePoints[i].position, line.linePoints[i].direction);
         }
-
-        if (line.linePoints.Count == 0) { return; }
         //Calculate the right diretionusing the cross product of the up and forward vectors
         Gizmos.DrawRay(line.linePoints[^1].position, line.linePoints[^1].direction);
 

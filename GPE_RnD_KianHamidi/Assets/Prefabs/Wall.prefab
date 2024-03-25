@@ -55,7 +55,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 55
   intersectionBuffer: 1
-  editDistance: 0.5
+  editDistance: 0
   isLooping: 0
   isDrawn: 0
   isEditingLine: 0
@@ -94,3 +94,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c83cf27882e3c2b45acdd5cd9de8825a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  material: {fileID: -876546973899608171, guid: 375c3966d4613d2468696872d29e938e,
+    type: 3}

@@ -109,6 +109,10 @@ public class WallGenerationFloodfill : MonoBehaviour
 
         //fill the wall area with bricks using a fitting algorithm
         FillWallArea(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, ref isPositionOccupied);
+
+        //at last check if we need to "carve" out the wall
+        CarveOutManager.Instance.carveOutWall.ClearCollisionList();
+        CarveOutManager.Instance.carveOutWall.CarveOut();
     }
 
     private void FillWallArea(GameObject wallSegment, SplineGenerator.Line line, int index, float wallWidth, Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh, ref bool[,] isPositionOccupied)
@@ -309,12 +313,6 @@ public class WallGenerationFloodfill : MonoBehaviour
             brick.transform.position += brick.transform.forward * Random.Range(0, wallDepth * brickDepthDiviation);
         }
         return brick;
-    }
-
-    //draw gizmo of relevant information
-    private void OnDrawGizmos()
-    {
-
     }
 
     void DrawBounds(GameObject wallSegment)

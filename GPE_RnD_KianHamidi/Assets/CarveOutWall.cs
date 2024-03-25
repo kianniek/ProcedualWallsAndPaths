@@ -59,16 +59,30 @@ public class CarveOutWall : MonoBehaviour
         }
     }
 
-    public void CarveOut()
+    public void ClearCollisionList()
     {
-        if (splineGeneratorsWallParent.transform.childCount == 0) { return; }
-        Debug.Log($"1");
-
-        if(colliders.Count != 0)
+        if (colliders.Count != 0)
         {
             foreach (Collider hit in colliders)
             {
                 hit.gameObject.SetActive(true);
+            }
+        }
+        colliders.Clear();
+    }
+
+    public void CarveOut()
+    {
+        if (splineGeneratorsWallParent.transform.childCount == 0) { return; }
+
+        if (colliders.Count != 0)
+        {
+            foreach (Collider hit in colliders)
+            {
+                if (hit.gameObject != null)
+                {
+                    hit.gameObject.SetActive(true);
+                }
             }
         }
 
@@ -91,7 +105,6 @@ public class CarveOutWall : MonoBehaviour
                     {
                         //get each renderer that intersects with the point and carve out the wall at distance carveOutDistance in an sphere
                         colliders.AddRange(Physics.OverlapSphere(point, carveOutDistance, walllayer));
-                        Debug.Log($"{colliders.Count}");
                     }
                 }
             }
@@ -100,7 +113,6 @@ public class CarveOutWall : MonoBehaviour
         foreach (Collider hit in colliders)
         {
             hit.gameObject.SetActive(false);
-            Debug.Log($"Carving out wall");
         }
     }
 
