@@ -689,8 +689,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 628427899176353542, guid: 7ea13a276e5ca60419afcf9dae416362,
         type: 3}
-      propertyPath: splineResolution
-      value: 0.2
+      propertyPath: isDrawn
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 628427899176353542, guid: 7ea13a276e5ca60419afcf9dae416362,
         type: 3}
@@ -3363,6 +3363,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3482899652766396138, guid: 5c3dbf0183a03a541b0946a29d07bb17,
         type: 3}
+      propertyPath: isDrawn
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3482899652766396138, guid: 5c3dbf0183a03a541b0946a29d07bb17,
+        type: 3}
       propertyPath: line.linePoints.Array.size
       value: 6
       objectReference: {fileID: 0}
@@ -3841,7 +3846,7 @@ MonoBehaviour:
     Object: {fileID: 1401185174003580238, guid: 6a0cca745c29eff42806e4ff612f7597,
       type: 3}
     hotspot: {x: 0, y: 0, z: 0}
-  currentCursor: 0
+  currentCursor: 3
 --- !u!4 &1592436686
 Transform:
   m_ObjectHideFlags: 0

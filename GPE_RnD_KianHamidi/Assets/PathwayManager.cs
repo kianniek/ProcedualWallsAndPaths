@@ -32,10 +32,10 @@ public class PathwayManager : MonoBehaviour
             return;
         }
 
-        InstatiateWall();
+        Instatiate();
     }
 
-    void InstatiateWall()
+    void Instatiate()
     {
         int button = 0;
 

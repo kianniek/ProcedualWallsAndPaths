@@ -25,6 +25,9 @@ public class SplineGenerator : MonoBehaviour
     [Tooltip("The resolution of the spline. The lower the value, the more points the spline will have. /n Make sure it adds up to 1")]
     public float splineResolution = 0.2f;
     Vector3 mouseWorldPos;
+    [SerializeField] protected LayerMask groundLayer;
+
+    [SerializeField] private float intersectionBuffer = 1f;
 
     //distance we need to be to an existing point to start editing the line
     public float editDistance = 0.5f;
@@ -193,6 +196,7 @@ public class SplineGenerator : MonoBehaviour
 
             //update the carve out wall manager
             CarveOutManager.Instance.carveOutWall.FetchUpdate();
+            CarveOutManager.Instance.carveOutWall.CarveOut();
         }
     }
 
@@ -219,7 +223,7 @@ public class SplineGenerator : MonoBehaviour
     public virtual Vector3 GetMouseWorldPosition()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
         {
             if (hit.collider != null)
             {
@@ -350,7 +354,7 @@ public class SplineGenerator : MonoBehaviour
     }
 
     //Display without having to press play
-    void OnDrawGizmos()
+    void OnDrawGizmosSelected()
     {
         if (line.controlPoints == null || line.linePoints == null) { return; }
         if(line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
@@ -376,7 +380,7 @@ public class SplineGenerator : MonoBehaviour
 
     }
 
-    private bool LineSegmentsIntersect(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, out Vector3 intersection, float buffer = 0.5f)
+    private bool LineSegmentsIntersect(Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4, out Vector3 intersection, float buffer = 0f)
     {
         intersection = Vector3.zero;
 
@@ -422,7 +426,7 @@ public class SplineGenerator : MonoBehaviour
             {
                 if (LineSegmentsIntersect(spline1.linePoints[i].position, spline1.linePoints[i + 1].position,
                                           spline2.linePoints[j].position, spline2.linePoints[j + 1].position,
-                                          out Vector3 intersection))
+                                          out Vector3 intersection, intersectionBuffer))
                 {
                     intersections.Add(intersection);
                     foundIntersection = true;

@@ -51,6 +51,10 @@ MonoBehaviour:
     linePoints: []
   lineSampleResolution: 1
   splineResolution: 0.2
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 55
+  intersectionBuffer: 1
   editDistance: 0.5
   isLooping: 0
   isDrawn: 0

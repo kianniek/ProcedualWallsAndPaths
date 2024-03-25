@@ -81,14 +81,14 @@ public class CarveOutWall : MonoBehaviour
             if (spline.line.linePoints.Count == 0) { continue; }
             foreach (SplineGenerator path_spline in splineGeneratorsPathway)
             {
-                Debug.Log($"2");
+                if (path_spline == null) { continue; }
+                if (path_spline.line.linePoints == null) { continue; }
+                if (path_spline.line.linePoints.Count == 0) { continue; }
 
-                if (spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
+                if (path_spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
                 {
                     foreach (Vector3 point in splineIntersectPoints)
                     {
-                        Debug.Log($"3");
-
                         //get each renderer that intersects with the point and carve out the wall at distance carveOutDistance in an sphere
                         colliders.AddRange(Physics.OverlapSphere(point, carveOutDistance, walllayer));
                         Debug.Log($"{colliders.Count}");
@@ -105,7 +105,7 @@ public class CarveOutWall : MonoBehaviour
     }
 
     //draw the intersection points
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
         if (splineGeneratorsWall == null) { return; }
         if (splineGeneratorsWall.Count == 0) { return; }
@@ -116,7 +116,7 @@ public class CarveOutWall : MonoBehaviour
             if (spline.line.linePoints.Count == 0) { continue; }
             foreach (SplineGenerator path_spline in splineGeneratorsPathway)
             {
-                if (spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
+                if (path_spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
                 {
                     foreach (Vector3 point in splineIntersectPoints)
                     {
