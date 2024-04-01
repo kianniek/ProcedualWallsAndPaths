@@ -80,7 +80,7 @@ MonoBehaviour:
   brickPrefab: {fileID: 7057152729200783137, guid: 5c1737f4ce7a6cd4298da9560f3ba995,
     type: 3}
   resolution: 8
-  rotationDiviation: {x: 0, y: 1}
+  rotationDiviation: {x: 0, y: 0}
   debug: 0
 --- !u!114 &8905136666242631867
 MonoBehaviour:

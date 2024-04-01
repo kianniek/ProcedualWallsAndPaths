@@ -52,7 +52,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 55
-  intersectionBuffer: 0.5
+  intersectionBuffer: 0
   editDistance: 0
   isLooping: 0
   isDrawn: 0
