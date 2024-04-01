@@ -14,5 +14,9 @@ public class DataTextureCreatorEditor : Editor
         {
             script.DataToTexture(); // Call the Start method manually
         }
+        if (GUILayout.Button("Clear Texture"))
+        {
+            script.ClearTexture(); // Call the Start method manually
+        }
     }
 }

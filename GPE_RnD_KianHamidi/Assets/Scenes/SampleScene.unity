@@ -4160,7 +4160,7 @@ Transform:
   m_GameObject: {fileID: 1296205579}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.017, y: 0, z: -0.934}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4318,17 +4318,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cf458cc7a5f1244c9fc10c7d101d123, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 256
+  textureSize: 64
   positions:
-  - {x: 0, y: 0, z: 1}
-  - {x: 0, y: 0, z: 2}
-  - {x: 0, y: 0, z: 3}
-  - {x: 0, y: 0, z: 4}
-  - {x: 0, y: 0, z: 5}
-  - {x: 0, y: 0, z: 6}
-  - {x: 0, y: 0, z: 7}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0.1}
+  - {x: 0, y: 0, z: 0.1}
+  - {x: 0, y: 0, z: 0.3}
+  - {x: 0, y: 0, z: 0.4}
+  - {x: 0, y: 0, z: 0.5}
   material: {fileID: 2100000, guid: 08f0cd18b2003734481d474974f20565, type: 2}
   dataTexture: {fileID: 2800000, guid: 87129239394e0c849932cf6187f9cf6b, type: 2}
+  ground: {fileID: 1566202449}
 --- !u!1 &1320013565
 GameObject:
   m_ObjectHideFlags: 0
