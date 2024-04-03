@@ -27,7 +27,7 @@ public class DataTextureCreator : MonoBehaviour
         for (int i = 0; i < positions.Length; i++)
         {
             //Vector2 textureCoord = WorldToTextureCoord(positions[i]);
-            DrawSquareAtWorldCoordinates(new Vector2(positions[i].x, positions[i].z), 10, 10, Color.red);
+            DrawSquareAtWorldCoordinates(new Vector2(positions[i].x, positions[i].z), 2, 2, Color.red);
         }
 
         dataTexture.Apply();
