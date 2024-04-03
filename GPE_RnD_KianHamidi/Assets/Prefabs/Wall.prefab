@@ -94,5 +94,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c83cf27882e3c2b45acdd5cd9de8825a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  material: {fileID: -876546973899608171, guid: 375c3966d4613d2468696872d29e938e,
-    type: 3}
+  material: {fileID: 2100000, guid: 08f0cd18b2003734481d474974f20565, type: 2}

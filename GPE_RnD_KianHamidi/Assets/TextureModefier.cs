@@ -7,9 +7,10 @@ public class TextureModifier : MonoBehaviour
     public SplineGenerator splineGenerator;
     public DataTextureCreator dataTextureCreator;
     public int textureSize;
+    public float textureSizeOffset;
     private Texture2D dataTexture;
     public Renderer ground;
-
+    public Vector3 vector3;
     public Vector2 debugDraw;
 
     void Start()
@@ -57,11 +58,12 @@ public class TextureModifier : MonoBehaviour
     }
     void DrawSplinePointsOnTexture()
     {
+        ClearTexture(); // Clear the texture before drawing new points.
         if (splineGenerator != null && splineGenerator.line.linePoints != null)
         {
             foreach (var point in splineGenerator.line.linePoints)
             {
-                DrawSquareAtWorldCoordinates(new Vector2(point.position.x, point.position.z), 5, 5, Color.red);
+                DrawSquareAtWorldCoordinates(new Vector2(point.position.x, point.position.z), 1, 1, Color.red);
             }
             dataTexture.Apply(); // Apply changes after all squares are drawn.
         }
@@ -77,6 +79,9 @@ public class TextureModifier : MonoBehaviour
 
         // Convert the world coordinate to the ground object's local space.
         Vector3 localCoord = ground.transform.InverseTransformPoint(worldCoord);
+        //rotate the localCoord about the y axis by -90 degrees
+
+        localCoord = Quaternion.Euler(vector3) * localCoord;
         Debug.Log($"Local Coord: {localCoord}");
         // Now localCoord is relative to the ground object's position and rotation.
         // Since the ground is considered flat and aligned with the XZ plane, we ignore the local y-coordinate.
@@ -91,7 +96,8 @@ public class TextureModifier : MonoBehaviour
         // Use the normalized coordinates to get the texture coordinates, clamping to ensure they stay within bounds.
         int textureX = Mathf.Clamp((int)(normalizedX * textureSize), 0, textureSize - 1);
         int textureY = Mathf.Clamp((int)(normalizedZ * textureSize), 0, textureSize - 1);
-        Debug.Log($"Texture X: {textureX}, Texture Y: {textureY}");
+
+
         return new Vector2(textureX, textureY);
     }
 

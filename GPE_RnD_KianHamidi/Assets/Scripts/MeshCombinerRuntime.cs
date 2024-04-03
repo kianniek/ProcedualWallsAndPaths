@@ -69,7 +69,7 @@ public class MeshCombinerRuntime : MonoBehaviour
                     // Set the combine instance's transform to the child's transform
                     combine[i].transform = meshFilter.transform.localToWorldMatrix;
                     // Optionally, you could deactivate the child's game object here
-                    //subChild.SetActive(false); // Consider your requirements before using
+                    subChild.SetActive(false); // Consider your requirements before using
                 }
             }
 
