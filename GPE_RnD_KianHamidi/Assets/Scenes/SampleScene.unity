@@ -2460,6 +2460,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 907997282}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &934869323
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 934869324}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: -5397416234189338067, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &934869324
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 934869323}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &942081916
 GameObject:
   m_ObjectHideFlags: 0
@@ -4159,8 +4190,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1296205579}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.017, y: 0, z: -0.934}
+  m_LocalRotation: {x: -0, y: -0.09060287, z: -0, w: -0.9958871}
+  m_LocalPosition: {x: -0.392, y: 0, z: -0.355}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4172,7 +4203,7 @@ Transform:
   - {fileID: 1979725854}
   - {fileID: 973618737}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 370.397, z: 0}
 --- !u!1 &1305611198
 GameObject:
   m_ObjectHideFlags: 0
@@ -4321,11 +4352,8 @@ MonoBehaviour:
   textureSize: 64
   positions:
   - {x: 0, y: 0, z: 0}
+  - {x: 0.1, y: 0, z: 0}
   - {x: 0, y: 0, z: 0.1}
-  - {x: 0, y: 0, z: 0.1}
-  - {x: 0, y: 0, z: 0.3}
-  - {x: 0, y: 0, z: 0.4}
-  - {x: 0, y: 0, z: 0.5}
   material: {fileID: 2100000, guid: 08f0cd18b2003734481d474974f20565, type: 2}
   dataTexture: {fileID: 2800000, guid: 87129239394e0c849932cf6187f9cf6b, type: 2}
   ground: {fileID: 1566202449}
@@ -6231,16 +6259,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2050624075}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 96169e2f313cc764cbdd543e0f043894, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   splineGenerator: {fileID: 0}
-  textureWidth: 1024
-  textureHeight: 1024
+  dataTextureCreator: {fileID: 1305805500}
+  textureSize: 0
   ground: {fileID: 1566202449}
-  debugDraw: {x: 0, y: 0}
+  debugDraw: {x: 1, y: 0}
 --- !u!1 &2083557237
 GameObject:
   m_ObjectHideFlags: 0
@@ -6358,3 +6386,4 @@ SceneRoots:
   - {fileID: 1592436686}
   - {fileID: 105041195}
   - {fileID: 1296205580}
+  - {fileID: 934869324}

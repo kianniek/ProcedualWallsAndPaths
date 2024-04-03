@@ -6,7 +6,7 @@ public class DataTextureCreator : MonoBehaviour
 {
     public int textureSize = 256; // Number of data points
     public Vector3[] positions; // Your positions array
-    public Material material; // Material to assign the texture to
+    public Material[] materials; // Material to assign the texture to
     public Texture2D dataTexture;
     public Renderer ground;
     void Start()
@@ -27,7 +27,7 @@ public class DataTextureCreator : MonoBehaviour
         for (int i = 0; i < positions.Length; i++)
         {
             //Vector2 textureCoord = WorldToTextureCoord(positions[i]);
-            DrawSquareAtWorldCoordinates(new Vector2(positions[i].x, positions[i].z), 6, 6, Color.red);
+            DrawSquareAtWorldCoordinates(new Vector2(positions[i].x, positions[i].z), 10, 10, Color.red);
         }
 
         dataTexture.Apply();
@@ -40,7 +40,11 @@ public class DataTextureCreator : MonoBehaviour
         }
 
         // Use the texture in your material, assign it to a shader, or save it
-        material.SetTexture("_DataTex", dataTexture);
+        foreach (var material in materials)
+        {
+            material.SetTexture("_DataTex", dataTexture);
+
+        }
     }
 
     Vector2 WorldToTextureCoord(Vector3 worldCoord)
@@ -53,7 +57,7 @@ public class DataTextureCreator : MonoBehaviour
 
         // Convert the world coordinate to the ground object's local space.
         Vector3 localCoord = ground.transform.InverseTransformPoint(worldCoord);
-
+        Debug.Log($"Local Coord: {localCoord}");
         // Now localCoord is relative to the ground object's position and rotation.
         // Since the ground is considered flat and aligned with the XZ plane, we ignore the local y-coordinate.
 
@@ -67,7 +71,7 @@ public class DataTextureCreator : MonoBehaviour
         // Use the normalized coordinates to get the texture coordinates, clamping to ensure they stay within bounds.
         int textureX = Mathf.Clamp((int)(normalizedX * textureSize), 0, textureSize - 1);
         int textureY = Mathf.Clamp((int)(normalizedZ * textureSize), 0, textureSize - 1);
-
+        Debug.Log($"Texture X: {textureX}, Texture Y: {textureY}");
         return new Vector2(textureX, textureY);
     }
 
@@ -111,6 +115,7 @@ public class DataTextureCreator : MonoBehaviour
     {
         // Convert center world coordinates to texture coordinates
         Vector2 textureCenter = WorldToTextureCoord(new Vector3(center.x, 0, center.y));
+        Debug.Log($"Texture Center: {textureCenter}");
 
         // Calculate start and end points in texture coordinates
         int startX = Mathf.Clamp((int)(textureCenter.x - (width / 2)), 0, textureSize - 1);

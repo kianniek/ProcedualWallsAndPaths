@@ -55,7 +55,6 @@ public class WallManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(button))
         {
-            print("Drawing");
             GameObject go = Instantiate(WallPrefab, transform.position, transform.rotation, transform);
             splines.Add(go.GetComponent<SplineGenerator>());
         }
