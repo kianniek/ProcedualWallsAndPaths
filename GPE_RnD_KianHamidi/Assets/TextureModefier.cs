@@ -1,20 +1,24 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class TextureModifier : MonoBehaviour
 {
-    // Assuming the correct class name is SplineGenerator.
-    public SplineGenerator splineGenerator;
+    public PathwayManager pathwayManager;
     public DataTextureCreator dataTextureCreator;
     public int textureSize;
     public float textureSizeOffset;
-    private Texture2D dataTexture;
+    public Texture2D dataTexture;
     public Renderer ground;
-    public Vector3 vector3;
-    public Vector2 debugDraw;
+    public Vector3 textureRotation;
+
+    [Range(1, 10)]
+    public int brushSize = 1;
 
     void Start()
     {
+        pathwayManager = GetComponent<PathwayManager>();
         textureSize = dataTextureCreator.textureSize;
         if (ground == null)
         {
@@ -22,83 +26,82 @@ public class TextureModifier : MonoBehaviour
             return;
         }
 
-        // Create a new texture
-        dataTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
-        ClearTexture();
+        //// Create a new texture
+        //dataTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
+        //ClearTexture();
 
         // Initialize texture as _MaskingTexture
         ground.material.SetTexture("_MaskingTexture", dataTexture);
 
         // Call the method to draw the square once at the start
-        //DrawSquareAtWorldCoordinates(debugDraw, 10, 10, Color.red);
         //dataTexture.Apply();
     }
 
     void Update()
     {
-        if (transform.childCount > 0 && splineGenerator == null)
+        if (pathwayManager.GetSplines() == null)
         {
-            // Update the splineGenerator reference only if it hasn't been set yet.
-            splineGenerator = transform.GetChild(0).GetComponent<SplineGenerator>();
-            if (splineGenerator == null)
+            Debug.LogError("SplineGenerator component not found on the first child.");
+            return;
+        }
+        if (transform.childCount > 0 && pathwayManager.GetSplines() == null)
+        {
+            for (int i = 0; i < transform.childCount; i++)
             {
-                Debug.LogError("SplineGenerator component not found on the first child.");
-                return;
+                if (transform.GetChild(i).GetComponent<SplineGenerator>() != null && !pathwayManager.GetSplines().Contains(transform.GetChild(i).GetComponent<SplineGenerator>()))
+                {
+                    pathwayManager.GetSplines().Add(transform.GetChild(i).GetComponent<SplineGenerator>());
+                }
             }
-        }
 
-        if (splineGenerator != null)
-        {
-            // Optionally clear texture each frame to update points.
-            // ClearTexture();
-
-            DrawSplinePointsOnTexture();
-            dataTexture.Apply();
         }
+        // Optionally clear texture each frame to update points.
+        // ClearTexture();
+
+        DrawSplinePointsOnTexture();
+        dataTexture.Apply();
     }
+
     void DrawSplinePointsOnTexture()
     {
         ClearTexture(); // Clear the texture before drawing new points.
-        if (splineGenerator != null && splineGenerator.line.linePoints != null)
+        foreach (var spline in pathwayManager.GetSplines())
         {
-            foreach (var point in splineGenerator.line.linePoints)
+            if (spline != null && spline.line.linePoints != null)
             {
-                DrawSquareAtWorldCoordinates(new Vector2(point.position.x, point.position.z), 1, 1, Color.red);
+                foreach (var point in spline.line.linePoints)
+                {
+                    DrawSquareAtWorldCoordinates(new Vector2(point.position.x, point.position.z), Color.red);
+                }
             }
-            dataTexture.Apply(); // Apply changes after all squares are drawn.
         }
+        BlurTexture(dataTexture, 1); // Blur the texture after all points are drawn.
+        dataTexture.Apply(); // Apply changes after all squares are drawn.
     }
 
-    Vector2 WorldToTextureCoord(Vector3 worldCoord)
+    Vector2 CalculateTextureCoordinate(Vector3 worldPosition, float tiling, Vector2 offset)
     {
-        if (ground == null)
-        {
-            Debug.LogError("Ground object is not set.");
-            return Vector2.zero;
-        }
+        // Normalize world position to [0,1] for a 1x1 plane
+        Vector2 normalizedPosition = new Vector2(worldPosition.x, worldPosition.y);
 
-        // Convert the world coordinate to the ground object's local space.
-        Vector3 localCoord = ground.transform.InverseTransformPoint(worldCoord);
-        //rotate the localCoord about the y axis by -90 degrees
+        // Apply tiling and offset
+        Vector2 tiledPosition = normalizedPosition * tiling + offset;
 
-        localCoord = Quaternion.Euler(vector3) * localCoord;
-        Debug.Log($"Local Coord: {localCoord}");
-        // Now localCoord is relative to the ground object's position and rotation.
-        // Since the ground is considered flat and aligned with the XZ plane, we ignore the local y-coordinate.
+        return tiledPosition;
+    }
 
-        Bounds bounds = new Bounds(Vector3.zero, ground.transform.localScale);
+    void DrawSquareAtWorldCoordinates(Vector2 worldPosition, Color color)
+    {
+        // Convert center world coordinates to texture coordinates
+        Vector2 uv = CalculateTextureCoordinate(worldPosition, 0.1f, new Vector2(0.5f, 0.5f));
 
-        // Normalize the coordinates to a [0, 1] range based on the ground's size.
-        // The bounds are centered at zero, so we adjust by adding 0.5 to the normalized value to shift the range from [-0.5, 0.5] to [0, 1].
-        float normalizedX = (localCoord.x / bounds.size.x) + 0.5f;
-        float normalizedZ = (localCoord.z / bounds.size.z) + 0.5f;
+        uv = Quaternion.Euler(textureRotation) * uv;
+        // Convert UV to pixel coordinates
+        int x = Mathf.RoundToInt(uv.x * dataTexture.width);
+        int y = Mathf.RoundToInt(uv.y * dataTexture.height);
 
-        // Use the normalized coordinates to get the texture coordinates, clamping to ensure they stay within bounds.
-        int textureX = Mathf.Clamp((int)(normalizedX * textureSize), 0, textureSize - 1);
-        int textureY = Mathf.Clamp((int)(normalizedZ * textureSize), 0, textureSize - 1);
-
-
-        return new Vector2(textureX, textureY);
+        DrawCircle(dataTexture, x, y, brushSize, color);
+        // Moved dataTexture.Apply() to be called after all drawing operations in the calling method.
     }
 
     public void ClearTexture()
@@ -116,6 +119,65 @@ public class TextureModifier : MonoBehaviour
         }
         dataTexture.SetPixels(clearColors);
         dataTexture.Apply(); // Ensure changes are applied.
+    }
+
+    //fuctions that takes in a texture and sets pixels in a circle x and y are the center of the circle and takes in a color
+    public void DrawCircle(Texture2D tex, int x, int y, int radius, Color color)
+    {
+        int diameter = radius * 2;
+
+        for (int i = -diameter; i < diameter; i++)
+        {
+            for (int j = -diameter; j < diameter; j++)
+            {
+
+                float distance = Mathf.Sqrt((i - radius) * (i - radius) + (j - radius) * (j - radius));
+
+                if (distance < radius)
+                {
+                    tex.SetPixel(x + i - radius, y + j - radius, color);
+                }
+                else
+                {
+                    //tex.SetPixel(i * x + j, i * y + j, color / distance);
+                }
+            }
+        }
+    }
+
+    //blur the texture
+    public void BlurTexture(Texture2D tex, int radius)
+    {
+        Color[] original = tex.GetPixels();
+        Color[] blurred = new Color[original.Length];
+
+        for (int i = 0; i < tex.width; i++)
+        {
+            for (int j = 0; j < tex.height; j++)
+            {
+                Color sum = Color.black;
+                int count = 0;
+
+                for (int k = -radius; k <= radius; k++)
+                {
+                    for (int l = -radius; l <= radius; l++)
+                    {
+                        int x = i + k;
+                        int y = j + l;
+
+                        if (x >= 0 && x < tex.width && y >= 0 && y < tex.height)
+                        {
+                            sum += original[y * tex.width + x];
+                            count++;
+                        }
+                    }
+                }
+
+                blurred[j * tex.width + i] = sum / count;
+            }
+        }
+
+        tex.SetPixels(blurred);
     }
 
     public void SaveTextureToResources()
@@ -137,26 +199,5 @@ public class TextureModifier : MonoBehaviour
         Debug.Log("Texture saved to " + path);
     }
 
-    void DrawSquareAtWorldCoordinates(Vector2 center, float width, float height, Color color)
-    {
-        // Convert center world coordinates to texture coordinates
-        Vector2 textureCenter = WorldToTextureCoord(new Vector3(center.x, 0, center.y));
-        Debug.Log($"Texture Center: {textureCenter}");
 
-        // Calculate start and end points in texture coordinates
-        int startX = Mathf.Clamp((int)(textureCenter.x - (width / 2)), 0, textureSize - 1);
-        int startY = Mathf.Clamp((int)(textureCenter.y - (height / 2)), 0, textureSize - 1);
-        int endX = Mathf.Clamp((int)(textureCenter.x + (width / 2)), 0, textureSize - 1);
-        int endY = Mathf.Clamp((int)(textureCenter.y + (height / 2)), 0, textureSize - 1);
-
-        // Fill in the square on the texture
-        for (int i = startX; i <= endX; i++)
-        {
-            for (int j = startY; j <= endY; j++)
-            {
-                dataTexture.SetPixel(i, j, color);
-            }
-        }
-        // Moved texture.Apply() to be called after all drawing operations in the calling method.
-    }
 }

@@ -54,9 +54,20 @@ public class PathwayManager : MonoBehaviour
 
         if (Input.GetMouseButtonDown(button))
         {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (!Physics.Raycast(ray, out RaycastHit hit))
+            {
+                return;
+            }
+
             print("Drawing");
             GameObject go = Instantiate(PathwayPrefab, transform.position, transform.rotation, transform);
             splines.Add(go.GetComponent<SplineGenerator>());
         }
+    }
+
+    public List<SplineGenerator> GetSplines()
+    {
+        return splines;
     }
 }

@@ -1,9 +1,8 @@
 using System.Collections;
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public class WallGenerationFloodfill : MonoBehaviour
+public class WallGenerationFloodfillCoroutine : MonoBehaviour
 {
     [Header("Optimalisation")]
     [Space(10)]
@@ -40,6 +39,11 @@ public class WallGenerationFloodfill : MonoBehaviour
         {
             meshCombinerRuntime.CombineMeshes();
         }
+
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            ReGenerate();
+        }
     }
 
     public void ReGenerate()
@@ -48,6 +52,8 @@ public class WallGenerationFloodfill : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+        print(debug);
+        GenerateOnLine(splineGenerator.line);
     }
 
     public void GenerateOnLine(SplineGenerator.Line line)
@@ -75,13 +81,14 @@ public class WallGenerationFloodfill : MonoBehaviour
     {
         for (int i = 0; i < line.linePoints.Count - 1; i++)
         {
-            yield return new WaitForSeconds(0.1f);
-            StartCoroutine(GenerateWallCoroutine(line, i, wallHeight));
+            yield return StartCoroutine(GenerateWallStep(line, i, wallHeight));
+            yield return new WaitForSeconds(0.1f); // Delay between each wall segment generation
         }
     }
 
-    IEnumerator GenerateWallCoroutine(SplineGenerator.Line line, int index, float wallHeight)
+    IEnumerator GenerateWallStep(SplineGenerator.Line line, int index, float wallHeight)
     {
+        // Implementation of GenerateWall remains mostly unchanged, just refactored into a coroutine
         Vector3 bottomLeft = line.linePoints[index].position;
         Vector3 bottomRight = line.linePoints[index + 1].position;
         float wallWidth = Vector3.Distance(bottomLeft, bottomRight);
@@ -103,17 +110,95 @@ public class WallGenerationFloodfill : MonoBehaviour
         int numberOfBricksHigh = Mathf.FloorToInt(wallHeight / minBrickSize.y * resolution);
         isPositionOccupied = new bool[numberOfBricksAcross, numberOfBricksHigh];
 
-        //make a wallsegemnt gameobject
+        // Instead of directly calling FillWallArea, you start it as a coroutine and wait for it to complete
         GameObject wallSegment = new("WallSegment");
         wallSegment.transform.parent = transform;
+        yield return StartCoroutine(FillWallAreaCoroutine(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh));
+    }
 
-        yield return new WaitForSeconds(0.1f);
-        //fill the wall area with bricks using a fitting algorithm
-        StartCoroutine(FillWallAreaCoroutine(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, isPositionOccupied));
+    IEnumerator FillWallAreaCoroutine(GameObject wallSegment, SplineGenerator.Line line, int index, float wallWidth, Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh)
+    {
+        wallSegment.transform.position = bottomLeft;
+        Quaternion targetRotation = Quaternion.LookRotation(wallRight, Vector3.up);
+        wallSegment.transform.rotation = targetRotation;
 
-        //at last check if we need to "carve" out the wall
-        CarveOutManager.Instance.carveOutWall.ClearCollisionList();
-        CarveOutManager.Instance.carveOutWall.CarveOut();
+        for (int y = 0; y < numberOfBricksHigh; y++)
+        {
+            for (int x = 0; x < numberOfBricksAcross; x++)
+            {
+                if (!isPositionOccupied[x, y]) // Check if the current position is not occupied
+                {
+                    Vector2 currentBrickSize = ChooseBrickSize(minBrickSize, maxBrickSize);
+                    int brickWidth = Mathf.FloorToInt(currentBrickSize.x * resolution);
+                    int brickHeight = Mathf.FloorToInt(currentBrickSize.y * resolution);
+
+                    // Check if the brick fits in the remaining space
+                    if (x + brickWidth <= numberOfBricksAcross && y + brickHeight <= numberOfBricksHigh)
+                    {
+                        bool spaceAvailable = true;
+                        for (int i = 0; i < brickWidth && spaceAvailable; i++)
+                        {
+                            for (int j = 0; j < brickHeight && spaceAvailable; j++)
+                            {
+                                if (isPositionOccupied[x + i, y + j])
+                                {
+                                    spaceAvailable = false;
+                                }
+                            }
+                        }
+
+                        if (spaceAvailable)
+                        {
+                            for (int i = 0; i < brickWidth; i++)
+                            {
+                                for (int j = 0; j < brickHeight; j++)
+                                {
+                                    isPositionOccupied[x + i, y + j] = true;
+                                }
+                            }
+
+                            // Calculate the local position offset for the brick based on its size and the resolution.
+                            Vector3 localPositionOffset = wallForward.normalized * ((x + brickWidth / 2f) / resolution) +
+                                                          wallUp.normalized * ((y + brickHeight / 2f) / resolution);
+                            // Adjust the position by combining the spline point and the local offset.
+                            Vector3 position = bottomLeft + localPositionOffset;
+                            //lerp the up rotation of the brick from the bottomLeft to the bottomRight point direction of the line
+                            Vector3 rotation = wallRight;
+
+                            InstantiateBrickAt(position, rotation, currentBrickSize, wallSegment);
+                        }
+                    }
+
+                    // Yield after each brick to allow for a frame update
+                    yield return new WaitForSeconds(0.1f); // Delay between each wall segment generation
+
+                }
+            }
+        }
+
+        //ckeck if all the positions are occupied
+        bool allPositionsOccupied = true;
+        for (int y = 0; y < numberOfBricksHigh; y++)
+        {
+            for (int x = 0; x < numberOfBricksAcross; x++)
+            {
+                if (!isPositionOccupied[x, y])
+                {
+                    allPositionsOccupied = false;
+                }
+            }
+        }
+
+        //if not all positions are occupied, call the function again
+        if (!allPositionsOccupied)
+        {
+            FillWallArea(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, ref isPositionOccupied);
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.1f); // Delay between each wall segment generation
+            FitWallSegementToWall(wallSegment, wallWidth);
+        }
     }
 
     public void GenerateWall(SplineGenerator.Line line, int index, float wallHeight)
@@ -227,88 +312,6 @@ public class WallGenerationFloodfill : MonoBehaviour
         }
         else
         {
-            FitWallSegementToWall(wallSegment, wallWidth);
-        }
-    }
-
-    IEnumerator FillWallAreaCoroutine(GameObject wallSegment, SplineGenerator.Line line, int index, float wallWidth, Vector3 bottomLeft, Vector3 wallUp, Vector3 wallRight, Vector3 wallForward, int numberOfBricksAcross, int numberOfBricksHigh,bool[,] isPositionOccupied)
-    {
-        wallSegment.transform.position = bottomLeft;
-        Quaternion targetRotation = Quaternion.LookRotation(wallRight, Vector3.up);
-        wallSegment.transform.rotation = targetRotation;
-
-        for (int y = 0; y < numberOfBricksHigh; y++)
-        {
-            for (int x = 0; x < numberOfBricksAcross; x++)
-            {
-                if (!isPositionOccupied[x, y]) // Check if the current position is not occupied
-                {
-                    Vector2 currentBrickSize = ChooseBrickSize(minBrickSize, maxBrickSize);
-                    int brickWidth = Mathf.FloorToInt(currentBrickSize.x * resolution);
-                    int brickHeight = Mathf.FloorToInt(currentBrickSize.y * resolution);
-
-                    // Check if the brick fits in the remaining space
-                    if (x + brickWidth <= numberOfBricksAcross && y + brickHeight <= numberOfBricksHigh)
-                    {
-                        bool spaceAvailable = true;
-                        for (int i = 0; i < brickWidth && spaceAvailable; i++)
-                        {
-                            for (int j = 0; j < brickHeight && spaceAvailable; j++)
-                            {
-                                if (isPositionOccupied[x + i, y + j])
-                                {
-                                    spaceAvailable = false;
-                                }
-                            }
-                        }
-
-                        if (spaceAvailable)
-                        {
-                            for (int i = 0; i < brickWidth; i++)
-                            {
-                                for (int j = 0; j < brickHeight; j++)
-                                {
-                                    isPositionOccupied[x + i, y + j] = true;
-                                }
-                            }
-
-                            // Calculate the local position offset for the brick based on its size and the resolution.
-                            Vector3 localPositionOffset = wallForward.normalized * ((x + brickWidth / 2f) / resolution) +
-                                                          wallUp.normalized * ((y + brickHeight / 2f) / resolution);
-                            // Adjust the position by combining the spline point and the local offset.
-                            Vector3 position = bottomLeft + localPositionOffset;
-                            //lerp the up rotation of the brick from the bottomLeft to the bottomRight point direction of the line
-                            Vector3 rotation = wallRight;
-
-                            InstantiateBrickAt(position, rotation, currentBrickSize, wallSegment);
-                            yield return new WaitForSeconds(0.1f);
-                        }
-                    }
-                }
-            }
-        }
-
-        //ckeck if all the positions are occupied
-        bool allPositionsOccupied = true;
-        for (int y = 0; y < numberOfBricksHigh; y++)
-        {
-            for (int x = 0; x < numberOfBricksAcross; x++)
-            {
-                if (!isPositionOccupied[x, y])
-                {
-                    allPositionsOccupied = false;
-                }
-            }
-        }
-
-        //if not all positions are occupied, call the function again
-        if (!allPositionsOccupied)
-        {
-            StartCoroutine(FillWallAreaCoroutine(wallSegment, line, index, wallWidth, bottomLeft, wallUp, wallRight, wallForward, numberOfBricksAcross, numberOfBricksHigh, isPositionOccupied));
-        }
-        else
-        {
-            yield return new WaitForSeconds(1f);
             FitWallSegementToWall(wallSegment, wallWidth);
         }
     }

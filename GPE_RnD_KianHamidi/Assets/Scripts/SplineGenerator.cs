@@ -61,7 +61,7 @@ public class SplineGenerator : MonoBehaviour
     {
         DrawLine();
 
-        if(wallGenerationFloodfill != null)
+        if (wallGenerationFloodfill != null)
         {
             if (Input.GetKeyDown(KeyCode.Return))
             {
@@ -74,15 +74,16 @@ public class SplineGenerator : MonoBehaviour
                 wallGenerationFloodfill.GenerateOnLine(line);
             }
         }
-        
+
     }
 
     private void FixedUpdate()
     {
         line.linePoints = new List<Point>();
 
+
         //Draw the Catmull-Rom spline between the points
-        for (int i = 0; i < line.controlPoints.Count; i++)
+        for (int i = 1; i < line.controlPoints.Count - 1; i++)
         {
             //...if we are not making a looping line
             if ((i == line.controlPoints.Count - 1) && !isLooping)
@@ -189,7 +190,7 @@ public class SplineGenerator : MonoBehaviour
             isEditingLine = false;
             isDrawn = true;
 
-            if(wallGenerationFloodfill != null)
+            if (wallGenerationFloodfill != null)
             {
                 wallGenerationFloodfill.GenerateOnLine(line);
             }
@@ -236,6 +237,18 @@ public class SplineGenerator : MonoBehaviour
     //Display a spline between 2 points derived with the Catmull-Rom spline algorithm
     public virtual void CalculateCatmullRomSpline(int controlPointIndex)
     {
+        if (controlPointIndex - 1 < 0)
+        {
+            Point point = new()
+            {
+                position = line.controlPoints[controlPointIndex].position,
+                //get the right direction for the line using 
+                direction = Vector3.Cross(Vector3.up, (line.controlPoints[controlPointIndex + 1].position - line.controlPoints[controlPointIndex].position).normalized)
+            };
+            line.linePoints.Add(point);
+        }
+
+
         //The 4 points we need to form a spline between p1 and p2 
         Vector3 p0 = line.controlPoints[ClampListPos(controlPointIndex - 1)].position;
         Vector3 p1 = line.controlPoints[ClampListPos(controlPointIndex)].position;
@@ -357,7 +370,22 @@ public class SplineGenerator : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         if (line.controlPoints == null || line.linePoints == null) { return; }
-        if(line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
+        if (line.controlPoints.Count == 0 || line.linePoints.Count == 0) { return; }
+
+        line.linePoints = new List<Point>();
+
+        //Draw the Catmull-Rom spline between the points
+        for (int i = 1; i < line.controlPoints.Count - 1; i++)
+        {
+            //...if we are not making a looping line
+            if ((i == line.controlPoints.Count - 1) && !isLooping)
+            {
+                continue;
+            }
+
+            CalculateCatmullRomSpline(i);
+        }
+
         //draw line between the line points
         for (int i = 0; i < line.linePoints.Count; i++)
         {
