@@ -16,6 +16,9 @@ public class TextureModifier : MonoBehaviour
     [Range(1, 10)]
     public int brushSize = 1;
 
+    [Range(0, 10)]
+    public int blurRadius = 1;
+
     void Start()
     {
         pathwayManager = GetComponent<PathwayManager>();
@@ -75,7 +78,7 @@ public class TextureModifier : MonoBehaviour
                 }
             }
         }
-        BlurTexture(dataTexture, 1); // Blur the texture after all points are drawn.
+        BlurTexture(dataTexture, blurRadius); // Blur the texture after all points are drawn.
         dataTexture.Apply(); // Apply changes after all squares are drawn.
     }
 

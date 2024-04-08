@@ -17,6 +17,8 @@ public class CarveOutWall : MonoBehaviour
 
     List<Collider> colliders;
 
+    public bool hideWallBricks = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -110,9 +112,13 @@ public class CarveOutWall : MonoBehaviour
             }
         }
 
-        foreach (Collider hit in colliders)
+        if (hideWallBricks)
         {
-            hit.gameObject.SetActive(false);
+            foreach (Collider hit in colliders)
+            {
+
+                hit.gameObject.SetActive(false);
+            }
         }
     }
 

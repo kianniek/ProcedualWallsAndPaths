@@ -18,7 +18,7 @@ public class DataTextureCreator : MonoBehaviour
     {
         if (dataTexture == null)
         {
-            dataTexture = new Texture2D(textureSize, textureSize, TextureFormat.RGBAFloat, false, true);
+            dataTexture = new Texture2D(textureSize, textureSize, TextureFormat.DXT1Crunched, false, true);
             dataTexture.filterMode = FilterMode.Point;
             dataTexture.wrapMode = TextureWrapMode.Clamp;
         }
