@@ -234,5 +234,23 @@ public class TextureModifier : MonoBehaviour
         Debug.Log("Texture saved to " + path);
     }
 
+    public void IncreaseBrushsize()
+    {
+        brushSize++;
 
+        if (brushSize > 10)
+        {
+            brushSize = 10;
+        }
+    }
+
+    public void DecreaseBrushsize()
+    {
+        brushSize--;
+
+        if (brushSize < 1)
+        {
+            brushSize = 1;
+        }
+    }
 }

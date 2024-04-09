@@ -119,6 +119,16 @@ public class CursorHandler : MonoBehaviour
         Debug.Log($"Cursor type changed to: {cursorType}");
         currentCursor = cursorType;
     } 
+
+    public void SetCurserPlacingPathway()
+    {
+        SetCurrentCursorType(CursorType.PlacingPath);
+    }
+
+    public void SetCurserPlacingWall()
+    {
+        SetCurrentCursorType(CursorType.PlacingWall);
+    }
     public CursorType GetCurrentCursorType()
     {
         return currentCursor;

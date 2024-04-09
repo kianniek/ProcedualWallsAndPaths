@@ -55,7 +55,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 55
   intersectionBuffer: 1
-  editDistance: 0.1
+  editDistance: 0
   isLooping: 0
   isDrawn: 0
   isEditingLine: 0
@@ -72,15 +72,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   combineMeshes: 0
-  wallHeight: 1.5034773
-  wallDepth: 0.99
-  brickDepthDiviation: 0.30069602
+  wallHeight: 3.825657
+  wallDepth: 0.2
+  brickDepthDiviation: 0.5
   minBrickSize: {x: 1, y: 1}
   maxBrickSize: {x: 2, y: 2}
   brickPrefab: {fileID: 7057152729200783137, guid: 5c1737f4ce7a6cd4298da9560f3ba995,
     type: 3}
   resolution: 8
-  rotationDiviation: {x: 0, y: 0}
+  rotationDiviation: {x: 2, y: 2}
   debug: 0
 --- !u!114 &8905136666242631867
 MonoBehaviour:
