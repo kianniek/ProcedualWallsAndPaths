@@ -16,7 +16,7 @@ public class CarveOutWall : MonoBehaviour
 
     public LayerMask walllayer;
 
-    List<Collider> colliders;
+    [SerializeField] List<Collider> colliders;
 
     List<SplineGenerator.Intersection> splineIntersectPoints;
 
@@ -74,9 +74,22 @@ public class CarveOutWall : MonoBehaviour
         {
             foreach (Collider hit in colliders)
             {
-                hit.gameObject.SetActive(true);
+                print(hit);
+                if (hit.gameObject != null)
+                {
+                    hit.gameObject.SetActive(true);
+                }
+                else
+                {
+                    colliders.Remove(hit);
+                }
             }
         }
+        colliders.Clear();
+    }
+
+    public void ForceClearCollisionList()
+    {
         colliders.Clear();
     }
 
@@ -88,7 +101,11 @@ public class CarveOutWall : MonoBehaviour
         {
             foreach (Collider hit in colliders)
             {
-                if (hit.gameObject != null)
+                if (hit == null)
+                {
+                    colliders.Remove(hit);
+                }
+                else
                 {
                     hit.gameObject.SetActive(true);
                 }
@@ -194,18 +211,14 @@ public class CarveOutWall : MonoBehaviour
             if (spline == null) { continue; }
             if (spline.line.linePoints == null) { continue; }
             if (spline.line.linePoints.Count == 0) { continue; }
-            foreach (SplineGenerator path_spline in splineGeneratorsPathway)
+
+            if (splineIntersectPoints == null) { return; }
+            foreach (SplineGenerator.Intersection pointData in splineIntersectPoints)
             {
-                if (path_spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<SplineGenerator.Intersection> splineIntersectPoints))
-                {
-                    foreach (SplineGenerator.Intersection pointData in splineIntersectPoints)
-                    {
-                        Gizmos.color = Color.red;
-                        Gizmos.DrawSphere(pointData.center, 0.1f);
-                        Gizmos.color = Color.cyan;
-                        Gizmos.DrawWireSphere(pointData.center, carveOutDistance);
-                    }
-                }
+                Gizmos.color = Color.red;
+                Gizmos.DrawSphere(pointData.center, 0.1f);
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(pointData.center, carveOutDistance);
             }
         }
     }

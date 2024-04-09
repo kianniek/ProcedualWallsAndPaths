@@ -463,4 +463,47 @@ public class WallGenerationFloodfill : MonoBehaviour
         Debug.DrawLine(corner3, corner7, Color.red, duration: 3f);
         Debug.DrawLine(corner4, corner8, Color.red, duration: 3f);
     }
+
+    //add set functions for all the variables
+    public void SetWallHeight(float value)
+    {
+        wallHeight = value;
+    }
+    public void SetWallWidth(float value)
+    {
+        wallDepth = value;
+    }
+    public void SetBrickDepthDiviation(float value)
+    {
+        brickDepthDiviation = value;
+    }
+    public void SetMinBrickSize(Vector2 value)
+    {
+        minBrickSize = new Vector2Int((int)value.x, (int)value.y);
+    }
+    public void SetMaxBrickSize(Vector2 value)
+    {
+        maxBrickSize = new Vector2Int((int)value.x, (int)value.y);
+    }
+    public void SetBrickPrefab(GameObject value)
+    {
+        brickPrefab = value;
+    }
+    public void SetResolution(float value)
+    {
+        resolution = value;
+    }
+    public void SetRotationDiviation(Vector2 value)
+    {
+        rotationDiviation = value;
+    }
+    public void SetDebug(bool value)
+    {
+        debug = value;
+    }
+    public void SetCombineMeshes(bool value)
+    {
+        combineMeshes = value;
+    }
+
 }

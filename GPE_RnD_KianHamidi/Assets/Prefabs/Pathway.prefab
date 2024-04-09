@@ -47,7 +47,7 @@ MonoBehaviour:
   line:
     controlPoints: []
     linePoints: []
-  lineSampleResolution: 1
+  lineSampleResolution: 0.1
   splineResolution: 0.2
   groundLayer:
     serializedVersion: 2

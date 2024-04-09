@@ -33,6 +33,7 @@ public class CursorHandler : MonoBehaviour
             return;
         }
         Instance = this;
+
         //DontDestroyOnLoad(gameObject);
 
         InitializeCursorHolder();
@@ -59,15 +60,16 @@ public class CursorHandler : MonoBehaviour
 
     private void InitializeCursors()
     {
-        foreach (var cursor in cursors)
+        for (int i = 0; i < cursors.Length; i++)
         {
-            if (cursor.Object != null)
+            if (cursors[i].Object != null)
             {
-                GameObject go = Instantiate(cursor.Object, cursorHolder.transform);
+                GameObject go = Instantiate(cursors[i].Object, cursorHolder.transform);
                 go.SetActive(false);
-                go.name = cursor.name;
-                go.transform.localPosition = cursor.hotspot;
-                cursorDictionary.Add((CursorType)Array.IndexOf(cursors, cursor), cursor);
+                go.name = cursors[i].name;
+                go.transform.localPosition = cursors[i].hotspot;
+                cursors[i].Object = go;
+                cursorDictionary.Add((CursorType)Array.IndexOf(cursors, cursors[i]), cursors[i]);
             }
         }
     }

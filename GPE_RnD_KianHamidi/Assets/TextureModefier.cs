@@ -120,6 +120,32 @@ public class TextureModifier : MonoBehaviour
 
             Debug.Log($"Change in texture size detected form {dataTexture.width} to {textureSize}, Created new texture. Please reapply the texture to places it was used");
         }
+
+        Color clearColor = Color.black; // Or any color representing the "empty" state
+        Color[] clearColors = new Color[textureSize * textureSize];
+        for (int i = 0; i < clearColors.Length; i++)
+        {
+            clearColors[i] = clearColor;
+        }
+        dataTexture.SetPixels(clearColors);
+        dataTexture.Apply(); // Ensure changes are applied.
+    }
+
+    public void ClearPathwaysAndTexture()
+    {
+        Debug.Log("Clearing texture");
+        if (textureSize != dataTexture.width)
+        {
+
+            Debug.Log($"Change in texture size detected form {dataTexture.width} to {textureSize}, Created new texture. Please reapply the texture to places it was used");
+        }
+
+        //clear the splines in pathwayManager and destroy the gameobjects
+        foreach (var spline in pathwayManager.GetSplines())
+        {
+            Destroy(spline.gameObject);
+        }
+        pathwayManager.GetSplines().Clear();
         Color clearColor = Color.black; // Or any color representing the "empty" state
         Color[] clearColors = new Color[textureSize * textureSize];
         for (int i = 0; i < clearColors.Length; i++)

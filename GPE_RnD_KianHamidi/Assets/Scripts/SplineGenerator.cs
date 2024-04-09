@@ -220,7 +220,6 @@ public class SplineGenerator : MonoBehaviour
         }
 
     }
-
     public virtual Vector3 GetMouseWorldPosition()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -464,6 +463,10 @@ public class SplineGenerator : MonoBehaviour
         intersections = new List<Intersection>();
         bool foundIntersection = false;
 
+        if(spline1.linePoints.Count == 0 || spline2.linePoints.Count == 0)
+        {
+            return foundIntersection;
+        }
         for (int i = 0; i < spline1.linePoints.Count - 1; i++)
         {
             for (int j = 0; j < spline2.linePoints.Count - 1; j++)

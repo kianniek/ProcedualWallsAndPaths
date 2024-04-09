@@ -74,4 +74,13 @@ public class WallManager : MonoBehaviour
         }
         return false;
     }
+
+    public void ClearWalls()
+    {
+        foreach (SplineGenerator s in splines)
+        {
+            Destroy(s.gameObject);
+        }
+        splines.Clear();
+    }
 }

@@ -87,9 +87,9 @@ public class DataTextureCreator : MonoBehaviour
 
     public void ClearTexture()
     {
+        Debug.Log("Clearing texture");
         if(textureSize != dataTexture.width)
         {
-            
             Debug.Log($"Change in texture size detected form {dataTexture.width} to {textureSize}, Created new texture. Please reapply the texture to places it was used");
         }
         Color clearColor = Color.black; // Or any color representing the "empty" state
