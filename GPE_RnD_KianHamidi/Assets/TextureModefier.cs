@@ -7,6 +7,7 @@ public class TextureModifier : MonoBehaviour
 {
     public PathwayManager pathwayManager;
     public DataTextureCreator dataTextureCreator;
+    public CarveOutWall carveOutWall;
     public int textureSize;
     public float textureSizeOffset;
     public Texture2D dataTexture;
@@ -21,6 +22,7 @@ public class TextureModifier : MonoBehaviour
 
     void Start()
     {
+        carveOutWall = GetComponentInParent<CarveOutWall>();
         pathwayManager = GetComponent<PathwayManager>();
         textureSize = dataTextureCreator.textureSize;
         if (ground == null)
@@ -35,6 +37,8 @@ public class TextureModifier : MonoBehaviour
 
         // Initialize texture as _MaskingTexture
         ground.material.SetTexture("_MaskingTexture", dataTexture);
+
+        carveOutWall.carveOutDistance = brushSize * 0.2f;
 
         // Call the method to draw the square once at the start
         //dataTexture.Apply();
@@ -63,6 +67,8 @@ public class TextureModifier : MonoBehaviour
 
         DrawSplinePointsOnTexture();
         dataTexture.Apply();
+
+        carveOutWall.carveOutDistance = brushSize * 0.2f;
     }
 
     void DrawSplinePointsOnTexture()

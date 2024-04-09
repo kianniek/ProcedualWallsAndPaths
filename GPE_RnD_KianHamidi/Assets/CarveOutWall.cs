@@ -11,13 +11,19 @@ public class CarveOutWall : MonoBehaviour
     public GameObject splineGeneratorsPathwayParent;
     public List<SplineGenerator> splineGeneratorsPathway;
 
+    public DataTextureCreator dataTextureCreator;
     public float carveOutDistance = 0.5f;
 
     public LayerMask walllayer;
 
     List<Collider> colliders;
 
+    List<SplineGenerator.Intersection> splineIntersectPoints;
+
+    public List<GameObject> archways;
+
     public bool hideWallBricks = false;
+    public bool addArchways = false;
 
     // Start is called before the first frame update
     void Start()
@@ -32,13 +38,14 @@ public class CarveOutWall : MonoBehaviour
             Debug.LogError("SplineGenerator is not set");
         }
         colliders = new();
+
+        splineIntersectPoints = new();
     }
 
     // Update is called once per frame
     public void FetchUpdate()
     {
-        if (splineGeneratorsWallParent == null) { return; }
-        if (splineGeneratorsPathwayParent == null) { return; }
+        if (splineGeneratorsWallParent == null || splineGeneratorsPathwayParent == null) { return; }
 
         //get the splines from the parent
         splineGeneratorsWall = new List<SplineGenerator>();
@@ -92,21 +99,20 @@ public class CarveOutWall : MonoBehaviour
 
         foreach (SplineGenerator spline in splineGeneratorsWall)
         {
-            if (spline == null) { continue; }
-            if (spline.line.linePoints == null) { continue; }
-            if (spline.line.linePoints.Count == 0) { continue; }
+            if (spline == null || spline.line.linePoints == null || spline.line.linePoints.Count == 0) { continue; }
+
             foreach (SplineGenerator path_spline in splineGeneratorsPathway)
             {
-                if (path_spline == null) { continue; }
-                if (path_spline.line.linePoints == null) { continue; }
-                if (path_spline.line.linePoints.Count == 0) { continue; }
-
-                if (path_spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
+                if (path_spline.CheckSplinesIntersection(path_spline.line, spline.line, out splineIntersectPoints))
                 {
-                    foreach (Vector3 point in splineIntersectPoints)
+                    foreach (SplineGenerator.Intersection pointData in splineIntersectPoints)
                     {
                         //get each renderer that intersects with the point and carve out the wall at distance carveOutDistance in an sphere
-                        colliders.AddRange(Physics.OverlapSphere(point, carveOutDistance, walllayer));
+                        colliders.AddRange(Physics.OverlapSphere(pointData.center, carveOutDistance, walllayer));
+                        if (addArchways)
+                        {
+                            AddArchwayColumns(pointData);
+                        }
                     }
                 }
             }
@@ -122,6 +128,62 @@ public class CarveOutWall : MonoBehaviour
         }
     }
 
+    private void AddArchwayColumns(SplineGenerator.Intersection point)
+    {
+        //add columns to the archway
+        GameObject columnLeft = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        GameObject columnRight = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+        if (archways == null) { archways = new(); }
+
+        columnLeft.transform.position = point.point1 + (point.center - point.point1).normalized * carveOutDistance + Vector3.up * dataTextureCreator.height / 2 + (point.center - point.point1).normalized * 0.1f;
+        columnLeft.transform.localScale = new Vector3(0.1f, dataTextureCreator.height, 0.1f);
+        columnLeft.transform.rotation = Quaternion.identity;
+        columnLeft.transform.LookAt(columnLeft.transform.position + point.direction1);
+        columnLeft.GetComponent<Renderer>().material.color = Color.white;
+
+        columnRight.transform.position = point.point2 + (point.center - point.point2).normalized * carveOutDistance + Vector3.up * dataTextureCreator.height / 2;
+        columnRight.transform.localScale = new Vector3(0.1f, dataTextureCreator.height, 0.1f);
+        columnRight.transform.rotation = Quaternion.identity;
+        columnRight.transform.LookAt(columnRight.transform.position + point.direction2);
+        columnRight.GetComponent<Renderer>().material.color = Color.white;
+
+        //debug draw line between the points
+        Debug.DrawLine(point.center, point.center + Vector3.up, Color.magenta, 10);
+        Debug.DrawLine(point.point1, point.point1 + Vector3.up, Color.magenta, 10);
+        Debug.DrawLine(point.point2, point.point2 + Vector3.up, Color.magenta, 10);
+        Debug.DrawLine(point.point1, point.point2, Color.magenta, 10);
+        Debug.DrawLine(point.center, point.point2, Color.red, 10);
+        Debug.DrawLine(point.center, point.point1, Color.red, 10);
+
+        if (archways.Count != 0)
+        {
+            //remove archways that share the same point
+            foreach (var item in archways)
+            {
+                if (columnLeft.transform.position != item.transform.position)
+                {
+                    archways.Add(columnLeft);
+                }
+                else
+                {
+                    Destroy(columnLeft);
+                }
+
+                if (columnRight.transform.position != item.transform.position)
+                {
+                    archways.Add(columnRight);
+                }
+                else
+                {
+                    Destroy(columnRight);
+                }
+
+            }
+        }
+
+    }
+
     //draw the intersection points
     private void OnDrawGizmosSelected()
     {
@@ -134,14 +196,14 @@ public class CarveOutWall : MonoBehaviour
             if (spline.line.linePoints.Count == 0) { continue; }
             foreach (SplineGenerator path_spline in splineGeneratorsPathway)
             {
-                if (path_spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<Vector3> splineIntersectPoints))
+                if (path_spline.CheckSplinesIntersection(path_spline.line, spline.line, out List<SplineGenerator.Intersection> splineIntersectPoints))
                 {
-                    foreach (Vector3 point in splineIntersectPoints)
+                    foreach (SplineGenerator.Intersection pointData in splineIntersectPoints)
                     {
                         Gizmos.color = Color.red;
-                        Gizmos.DrawSphere(point, 0.1f);
+                        Gizmos.DrawSphere(pointData.center, 0.1f);
                         Gizmos.color = Color.cyan;
-                        Gizmos.DrawWireSphere(point, carveOutDistance);
+                        Gizmos.DrawWireSphere(pointData.center, carveOutDistance);
                     }
                 }
             }

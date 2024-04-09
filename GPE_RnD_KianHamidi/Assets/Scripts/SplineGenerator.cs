@@ -440,10 +440,28 @@ public class SplineGenerator : MonoBehaviour
         return false;
     }
 
-
-    public bool CheckSplinesIntersection(Line spline1, Line spline2, out List<Vector3> intersections)
+    //struckt that saves 3 vectors that contain the center and the two other points of the intersection along the spline
+    public struct Intersection
     {
-        intersections = new List<Vector3>();
+        public Vector3 center;
+        public Vector3 point1;
+        public Vector3 point2;
+        public Vector3 direction1;
+        public Vector3 direction2;
+
+        public Intersection(Vector3 center, Vector3 point1, Vector3 point2, Vector3 direction1, Vector3 direction2)
+        {
+            this.center = center;
+            this.point1 = point1;
+            this.point2 = point2;
+            this.direction1 = direction1;
+            this.direction2 = direction2;
+        }
+    }
+
+    public bool CheckSplinesIntersection(Line spline1, Line spline2, out List<Intersection> intersections)
+    {
+        intersections = new List<Intersection>();
         bool foundIntersection = false;
 
         for (int i = 0; i < spline1.linePoints.Count - 1; i++)
@@ -454,7 +472,14 @@ public class SplineGenerator : MonoBehaviour
                                           spline2.linePoints[j].position, spline2.linePoints[j + 1].position,
                                           out Vector3 intersection, intersectionBuffer))
                 {
-                    intersections.Add(intersection);
+                    Intersection intersectionData = new(
+                        intersection,
+                        spline2.linePoints[j].position,
+                        spline2.linePoints[j + 1].position,
+                        spline2.linePoints[j].direction,
+                        spline2.linePoints[j + 1].direction);
+
+                    intersections.Add(intersectionData);
                     foundIntersection = true;
                 }
             }

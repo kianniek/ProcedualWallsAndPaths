@@ -9,11 +9,21 @@ public class DataTextureCreator : MonoBehaviour
     public Material[] materials; // Material to assign the texture to
     public Texture2D dataTexture;
     public Renderer ground;
+
+    public float height = 2f;
     void Start()
     {
         DataToTexture();
     }
 
+
+    private void Update()
+    {
+        foreach (var material in materials)
+        {
+            material.SetFloat("_Height", height);
+        }
+    }
     public void DataToTexture()
     {
         if (dataTexture == null)
@@ -132,5 +142,11 @@ public class DataTextureCreator : MonoBehaviour
             }
         }
         // Moved texture.Apply() to be called after all drawing operations in the calling method.
+    }
+
+    //clear texture when stopping play mode
+    private void OnApplicationQuit()
+    {
+        ClearTexture();
     }
 }
