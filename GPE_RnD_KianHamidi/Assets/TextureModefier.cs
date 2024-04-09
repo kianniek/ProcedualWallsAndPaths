@@ -222,15 +222,18 @@ public class TextureModifier : MonoBehaviour
         if (!System.IO.Directory.Exists(resourcesPath))
         {
             System.IO.Directory.CreateDirectory(resourcesPath);
+#if UNITY_EDITOR
             AssetDatabase.Refresh();
+            #endif
         }
 
         // Save the texture to the Resources folder
         string path = System.IO.Path.Combine(resourcesPath, "DataTexture.asset");
+#if UNITY_EDITOR
         AssetDatabase.CreateAsset(dataTexture, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-
+        #endif
         Debug.Log("Texture saved to " + path);
     }
 

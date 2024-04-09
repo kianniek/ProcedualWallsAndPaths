@@ -17,6 +17,19 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+            // Check if the Escape key is pressed
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                // Exit the application
+#if UNITY_EDITOR
+                // If running in the Unity editor
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+            // If running as a standalone build
+            Application.Quit();
+#endif
+            }
+
         if (Input.GetKeyDown(KeyCode.R))
         {
             // Reset the scene

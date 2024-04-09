@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UI;
 
 public class DataTextureCreator : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class DataTextureCreator : MonoBehaviour
     public Texture2D dataTexture;
     public Renderer ground;
 
+    public Slider heightSliderArchway;
     public float height = 2f;
     void Start()
     {
@@ -19,6 +21,7 @@ public class DataTextureCreator : MonoBehaviour
 
     private void Update()
     {
+        height = heightSliderArchway.value;
         foreach (var material in materials)
         {
             material.SetFloat("_Height", height);
@@ -44,11 +47,12 @@ public class DataTextureCreator : MonoBehaviour
 
         string resourcesPath = "Assets/Resources";
         string path = System.IO.Path.Combine(resourcesPath, "DataTexture.asset");
+#if UNITY_EDITOR
         if (!AssetDatabase.Contains(dataTexture))
         {
             SaveTextureToResources();
         }
-
+#endif
         // Use the texture in your material, assign it to a shader, or save it
         foreach (var material in materials)
         {
@@ -109,15 +113,18 @@ public class DataTextureCreator : MonoBehaviour
         if (!System.IO.Directory.Exists(resourcesPath))
         {
             System.IO.Directory.CreateDirectory(resourcesPath);
+#if UNITY_EDITOR
             AssetDatabase.Refresh();
+            #endif
         }
 
         // Save the texture to the Resources folder
         string path = System.IO.Path.Combine(resourcesPath, "DataTexture.asset");
+#if UNITY_EDITOR
         AssetDatabase.CreateAsset(dataTexture, path);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-
+        #endif
         Debug.Log("Texture saved to " + path);
     }
 
