@@ -7,6 +7,8 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     public Slider heightSlider; // Assign this in the inspector
+    public TextureModifier textureModifier; // Assign this in the inspector
+    public Slider pathwayBrushSizeSlider; // Assign this in the inspector
 
     // Define UnityEvents for each key action
     public UnityEvent actionForKeyB;
@@ -44,11 +46,14 @@ public class GameManager : MonoBehaviour
         {
             // Invoke the action for [ key
             actionForKeyLeftBracket.Invoke();
+
+            pathwayBrushSizeSlider.value = textureModifier.brushSize;
         }
         if (Input.GetKeyDown(KeyCode.RightBracket) && actionForKeyRightBracket != null)
         {
             // Invoke the action for ] key
             actionForKeyRightBracket.Invoke();
+            pathwayBrushSizeSlider.value = textureModifier.brushSize;
         }
         if (Input.GetKeyDown(KeyCode.W) && actionForKeyW != null)
         {
@@ -69,6 +74,15 @@ public class GameManager : MonoBehaviour
         {
             // Decrease slider value
             if (heightSlider != null) heightSlider.value -= 1;
+        }
+    }
+
+    public void SetPathwayBrushSize()
+    {
+        // Set the brush size for the pathway
+        if (pathwayBrushSizeSlider != null)
+        {
+            textureModifier.brushSize = (int)pathwayBrushSizeSlider.value;
         }
     }
 }
